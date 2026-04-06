@@ -1,0 +1,75 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== MESSAGES =====
+    // Authenticated users can create messages
+    // Only Cloud Functions can update status (approve/reject/shadowban)
+    match /messages/{messageId} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['text', 'senderId', 'mood', 'status'])
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 200
+        && request.resource.data.status == 'pending';
+      allow read: if request.auth != null
+        && resource.data.status == 'approved';
+      allow update, delete: if false;
+    }
+
+    // ===== USERS =====
+    // Users can read their own profile
+    // Cloud Functions manage bans, strikes, connectionCode
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.get('isBanned', false) == resource.data.get('isBanned', false)
+        && request.resource.data.get('strikes', 0) == resource.data.get('strikes', 0);
+      allow delete: if false;
+    }
+
+    // ===== CONNECTIONS =====
+    // Users can read connections they are part of
+    match /connections/{connectionId} {
+      allow read: if request.auth != null
+        && request.auth.uid in resource.data.users;
+      allow create, update, delete: if false;
+    }
+
+    // ===== VAULTS (saved messages) =====
+    // Users can manage their own saved messages
+    match /users/{userId}/vault/{messageId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ===== NOTIFICATIONS =====
+    // Users can read and update their own notifications
+    match /notifications/{notifId} {
+      allow read, update: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create, delete: if false;
+    }
+
+    // ===== REPORTS =====
+    // Users can report messages, only Cloud Functions can read
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+        && request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    // ===== SUPPORT TICKETS =====
+    match /support_tickets/{ticketId} {
+      allow read, update, delete: if false;
+    }
+
+    // ===== SECURITY FALLBACK =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

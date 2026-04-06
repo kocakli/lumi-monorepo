@@ -1,98 +1,98 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isShowingWriteMessage = false
-    @State private var isShowingReceiveMessage = false
-    @State private var isShowingVault = false
-    @State private var isShowingSettings = false
-    
+    @EnvironmentObject var router: AppRouter
+
     var body: some View {
         ZStack {
-            // Arka Plan (Japon Minimalizmi)
-            Color(red: 0.98, green: 0.98, blue: 0.96)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 40) {
-                // Header (Ayarlar ve Kasa Butonu)
+            AuroraBackground()
+
+            VStack(spacing: 0) {
+                // Home uses GlassNavIcon (glassmorphic circles per Figma)
                 HStack {
-                    Button(action: {
-                        isShowingSettings.toggle()
-                    }) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 24, weight: .light))
-                            .foregroundColor(.black.opacity(0.6))
+                    Button(action: { router.navigate(to: .settings) }) {
+                        GlassNavIcon(iconName: "icon-settings", width: 19, height: 19)
                     }
                     Spacer()
-                    Button(action: {
-                        isShowingVault.toggle()
-                    }) {
-                        Image(systemName: "archivebox")
-                            .font(.system(size: 24, weight: .light))
-                            .foregroundColor(.black.opacity(0.6))
+                    Button(action: { router.navigate(to: .vault) }) {
+                        GlassNavIcon(iconName: "icon-shelves", width: 17, height: 21)
                     }
                 }
-                .padding(.horizontal, 30)
-                .padding(.top, 10)
-                .fullScreenCover(isPresented: $isShowingVault) {
-                    VaultView()
-                }
-                .sheet(isPresented: $isShowingSettings) {
-                    SettingsView()
-                }
-                
-                Text("Lumi")
-                    .font(.custom("PlayfairDisplay-Regular", size: 42, relativeTo: .largeTitle))
-                    .foregroundColor(Color.black.opacity(0.8))
-                    .kerning(4)
-                
-                Text("sadece iyi hisler.")
-                    .font(.system(size: 16, weight: .light, design: .serif))
-                    .foregroundColor(Color.gray)
-                
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
+
                 Spacer()
-                
-                // Ana Butonlar
-                VStack(spacing: 20) {
-                    Button(action: {
-                        isShowingWriteMessage.toggle()
-                    }) {
-                        Text("Güzel Bir Şey Söyle")
-                            .font(.system(size: 16, weight: .medium))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.white)
-                            .foregroundColor(.black)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
-                    }
-                    .padding(.horizontal, 40)
-                    .fullScreenCover(isPresented: $isShowingWriteMessage) {
-                        WriteMessageView()
-                    }
-                    
-                    Button(action: {
-                        isShowingReceiveMessage.toggle()
-                    }) {
-                        Text("Bir Mesaj Al")
-                            .font(.system(size: 16, weight: .medium))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.clear)
-                            .foregroundColor(.black.opacity(0.7))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
-                            )
-                    }
-                    .padding(.horizontal, 40)
-                    .fullScreenCover(isPresented: $isShowingReceiveMessage) {
-                        ReceiveMessageView() // Mood selection can be integrated inside
-                    }
+
+                VStack(spacing: 16) {
+                    Text("Lumi")
+                        .font(LumiTheme.displayLarge(80))
+                        .foregroundStyle(LumiTheme.onSurface.opacity(0.9))
+                        .kerning(-4)
+                        .frame(height: 120)
+                        .transformEffect(CGAffineTransform(a: 1, b: 0, c: -0.18, d: 1, tx: 0, ty: 0))
+
+                    Text("DIGITAL SANCTUARY")
+                        .font(.custom("PlusJakartaSans-Regular", size: 10))
+                        .foregroundStyle(LumiTheme.mutedText.opacity(0.6))
+                        .kerning(4)
                 }
-                
+
                 Spacer()
+                    .frame(maxHeight: 32)
+
+                VStack(spacing: 24) {
+                    VStack(spacing: 24) {
+                        Button(action: { router.navigate(to: .receive) }) {
+                            HStack(spacing: 16) {
+                                Image("icon-sparkle")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 20, height: 20)
+                                    .foregroundStyle(LumiTheme.sparklePink)
+
+                                Text("Receive a Message")
+                                    .font(LumiTheme.bodyMedium(14))
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(LumiTheme.buttonText)
+                                    .tracking(0.4)
+                            }
+                            .padding(.horizontal, 41)
+                            .padding(.vertical, 21)
+                            .zenGlass(cornerRadius: 48, opacity: 0.4)
+                        }
+
+                        Button(action: { router.navigate(to: .write) }) {
+                            HStack(spacing: 16) {
+                                Image("icon-envelope")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 19, height: 15)
+                                    .foregroundStyle(LumiTheme.mutedText)
+
+                                Text("Say Something Nice")
+                                    .font(LumiTheme.bodyMedium(14))
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(LumiTheme.mutedText)
+                                    .tracking(0.4)
+                            }
+                            .padding(.horizontal, 41)
+                            .padding(.vertical, 21)
+                            .zenGlass(cornerRadius: 48, opacity: 0.3)
+                        }
+                        .opacity(0.4)
+                    }
+
+                    FloatingBottomBar(
+                        onAddTap: { router.navigate(to: .write) },
+                        onSparkTap: { router.navigate(to: .receive) }
+                    )
+                    .padding(.bottom, 32)
+                }
+                .padding(.bottom, 16)
             }
-            .padding(.bottom, 40)
         }
     }
 }
@@ -100,5 +100,6 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+            .environmentObject(AppRouter())
     }
 }

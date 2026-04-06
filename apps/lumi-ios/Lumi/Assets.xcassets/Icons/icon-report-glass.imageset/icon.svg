@@ -1,0 +1,7 @@
+<svg width="47.9999" height="50.2499" viewBox="0 0 47.9999 50.2499" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Overlay+Border">
+<rect width="47.9999" height="50.2499" rx="24" fill="var(--fill-0, white)" fill-opacity="0.2"/>
+<rect x="0.5" y="0.5" width="46.9999" height="49.2499" rx="23.5" stroke="var(--stroke-0, white)" stroke-opacity="0.4"/>
+<path id="Icon" d="M17 33.2499V17H25.0961L25.4961 19H30.9999V27.9999H24.9038L24.5038 25.9999H18.5V33.2499H17V33.2499M24 22.5V22.5V22.5V22.5V22.5V22.5V22.5V22.5V22.5V22.5M26.15 26.5H29.5V20.5H24.25L23.85 18.5H18.5V24.5H25.75L26.15 26.5V26.5" fill="#7E5541"/>
+</g>
+</svg>

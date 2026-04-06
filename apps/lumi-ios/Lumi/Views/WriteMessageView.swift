@@ -1,108 +1,198 @@
 import SwiftUI
 
 struct WriteMessageView: View {
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var router: AppRouter
+    @StateObject private var viewModel = WriteMessageViewModel()
     @State private var messageText: String = ""
-    @State private var selectedMood: String = "Rastgele"
-    
-    private let characterLimit = 200
-    let moods = ["Rastgele", "Eğlenceli", "Huzurlu", "Motive Edici", "Romantik"]
-    
+    @State private var selectedMood: String = "Random"
+    @FocusState private var isTextFocused: Bool
+
+    private let characterLimit = 400
+    let moods = ["Random", "Playful", "Peaceful", "Motivating", "Romantic"]
+
+    private var charactersRemaining: Int {
+        characterLimit - messageText.count
+    }
+
+    private var canSend: Bool {
+        !messageText.isEmpty && messageText.count <= characterLimit
+    }
+
     var body: some View {
-        ZStack {
-            // Arka Plan (Yarı saydam, buzlu cam efekti için zemin)
-            Color(red: 0.98, green: 0.98, blue: 0.96)
-                .ignoresSafeArea()
-            
-            VStack(alignment: .leading, spacing: 20) {
-                // Header (Kapatma Butonu ve Başlık)
-                HStack {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 20, weight: .light))
-                            .foregroundColor(.black.opacity(0.6))
-                    }
-                    Spacer()
-                    
-                    // Mood Seçici
-                    Menu {
-                        ForEach(moods, id: \.self) { mood in
-                            Button(mood) {
-                                selectedMood = mood
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedMood)
-                                .font(.system(size: 14, weight: .medium))
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 12))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.white)
-                        .cornerRadius(16)
-                        .foregroundColor(.black.opacity(0.8))
-                        .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
-                    }
-                }
-                .padding(.top, 20)
-                
-                Spacer()
-                
-                // Mesaj Giriş Alanı
-                TextEditor(text: $messageText)
-                    .font(.system(size: 24, weight: .regular, design: .serif))
-                    .foregroundColor(.black.opacity(0.8))
-                    .frame(height: 200)
-                    .scrollContentBackground(.hidden) // TextEditor'ün default arka planını kaldırır
-                    .background(Color.clear)
-                    .overlay(
-                        VStack {
-                            if messageText.isEmpty {
-                                HStack {
-                                    Text("Birini gülümsetecek bir şey yaz...")
-                                        .font(.system(size: 24, weight: .regular, design: .serif))
-                                        .foregroundColor(Color.black.opacity(0.3))
-                                        .padding(.top, 8)
-                                        .padding(.leading, 5)
-                                    Spacer()
-                                }
-                            }
-                            Spacer()
-                        }
-                    )
-                
-                // Karakter Sayacı ve Gönder Butonu
-                HStack {
-                    Text("\(messageText.count)/\(characterLimit)")
-                        .font(.system(size: 14, weight: .light))
-                        .foregroundColor(messageText.count > characterLimit ? .red : .black.opacity(0.4))
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        // Gönderme işlemi burada tetiklenecek
-                        print("Mesaj Gönderildi: \(messageText) - Mod: \(selectedMood)")
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Text("Gönder")
-                            .font(.system(size: 16, weight: .medium))
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(messageText.isEmpty || messageText.count > characterLimit ? Color.black.opacity(0.1) : Color.black)
-                            .foregroundColor(messageText.isEmpty || messageText.count > characterLimit ? .black.opacity(0.4) : .white)
-                            .cornerRadius(20)
-                    }
-                    .disabled(messageText.isEmpty || messageText.count > characterLimit)
-                }
-                
-                Spacer()
-                Spacer()
+        VStack(spacing: 0) {
+            modalHeader
+            modalBody
+            modalFooter
+        }
+        .background(LumiTheme.background)
+        .onTapGesture { isTextFocused = false }
+    }
+
+    // MARK: - Modal Header
+
+    private var modalHeader: some View {
+        HStack {
+            Button(action: { withAnimation(.spring(response: 0.35)) { router.showWrite = false } }) {
+                Image("icon-close")
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 17, height: 17)
+                    .foregroundStyle(LumiTheme.primary)
             }
-            .padding(.horizontal, 30)
+            .frame(width: 48, height: 48)
+
+            Spacer()
+
+            moodPill
+        }
+        .padding(.horizontal, 32)
+        .padding(.top, 32)
+        .padding(.bottom, 16)
+    }
+
+    private var moodPill: some View {
+        Menu {
+            ForEach(moods, id: \.self) { mood in
+                Button(mood) { selectedMood = mood }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Text(selectedMood == "Random" ? "SELECTING MOOD" : selectedMood.uppercased())
+                    .font(.custom("Plus Jakarta Sans", size: 10))
+                    .fontWeight(.medium)
+                    .foregroundStyle(LumiTheme.primary)
+                    .kerning(1)
+
+                Image("icon-chevron-down")
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 7, height: 4)
+                    .foregroundStyle(LumiTheme.primary)
+            }
+            .padding(.horizontal, 25)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.white.opacity(0.4))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.white.opacity(0.6), lineWidth: 1)
+            )
+        }
+    }
+
+    // MARK: - Modal Body
+
+    private var modalBody: some View {
+        ZStack(alignment: .top) {
+            if messageText.isEmpty {
+                placeholderText
+            }
+
+            TextEditor(text: $messageText)
+                .font(.custom("Noto Serif Display", size: 26))
+                .foregroundStyle(LumiTheme.onSurface)
+                .multilineTextAlignment(.center)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+                .focused($isTextFocused)
+                .padding(.horizontal, 12)
+                .padding(.top, messageText.isEmpty ? 50 : 16)
+        }
+        .frame(maxHeight: .infinity)
+        .padding(.horizontal, 32)
+    }
+
+    private var placeholderText: some View {
+        VStack(spacing: 4) {
+            Text("Pour your silence")
+                .font(.custom("Noto Serif Display", size: 30))
+                .foregroundStyle(Color(red: 0.42, green: 0.45, blue: 0.50))
+            Text("into words...")
+                .font(.custom("Noto Serif Display", size: 30))
+                .foregroundStyle(Color(red: 0.42, green: 0.45, blue: 0.50))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+        .allowsHitTesting(false)
+    }
+
+    // MARK: - Modal Footer
+
+    private var modalFooter: some View {
+        VStack(spacing: 28) {
+            characterCounter
+            sendButton
+        }
+        .padding(.horizontal, 32)
+        .padding(.top, 16)
+        .padding(.bottom, 40)
+    }
+
+    private var characterCounter: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .stroke(LumiTheme.primary.opacity(0.1), lineWidth: 1)
+                    .frame(width: 32, height: 32)
+                Circle()
+                    .fill(LumiTheme.primary)
+                    .frame(width: 4, height: 4)
+            }
+
+            Text("\(charactersRemaining) CHARACTERS UNTIL GLOW")
+                .font(.custom("Plus Jakarta Sans", size: 12))
+                .foregroundStyle(
+                    messageText.count > characterLimit
+                        ? Color.red.opacity(0.6)
+                        : LumiTheme.primary.opacity(0.4)
+                )
+                .kerning(2.4)
+        }
+    }
+
+    private var sendButton: some View {
+        Button(action: {
+            Task {
+                await viewModel.sendMessage(text: messageText, mood: selectedMood)
+                if viewModel.didSend {
+                    router.showMessageSent = true
+                    withAnimation(.spring(response: 0.35)) { router.showWrite = false }
+                }
+            }
+        }) {
+            Text("SEND INTO THE LIGHT")
+                .font(.custom("Plus Jakarta Sans", size: 14))
+                .fontWeight(.semibold)
+                .foregroundStyle(
+                    Color(red: 0.459, green: 0.427, blue: 0.451)
+                        .opacity(canSend ? 1 : 0.5)
+                )
+                .kerning(4.2)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(sendButtonBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        }
+        .disabled(!canSend)
+    }
+
+    private var sendButtonBackground: some View {
+        ZStack {
+            LumiTheme.primaryContainer
+            LinearGradient(
+                colors: [
+                    Color(red: 0.918, green: 0.878, blue: 0.902),
+                    LumiTheme.primaryContainer
+                ],
+                startPoint: .bottomLeading,
+                endPoint: .topTrailing
+            )
+            .opacity(canSend ? 0.6 : 0.4)
         }
     }
 }

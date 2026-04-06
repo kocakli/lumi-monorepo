@@ -1,0 +1,100 @@
+name: Lumi
+options:
+  bundleIdPrefix: com.tease
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: "7662RJQM79"
+    SWIFT_VERSION: "5.9"
+
+packages:
+  firebase-ios-sdk:
+    url: https://github.com/firebase/firebase-ios-sdk
+    majorVersion: 11.0.0
+  lottie-ios:
+    url: https://github.com/airbnb/lottie-ios
+    majorVersion: 4.0.0
+
+targets:
+  Lumi:
+    type: application
+    platform: iOS
+    sources:
+      - path: Lumi
+        excludes:
+          - "**/.DS_Store"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tease.lumi
+        INFOPLIST_GENERATION_MODE: GeneratedFile
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+    dependencies:
+      - package: firebase-ios-sdk
+        product: FirebaseAuth
+      - package: firebase-ios-sdk
+        product: FirebaseFirestore
+      - package: firebase-ios-sdk
+        product: FirebaseFunctions
+      - package: firebase-ios-sdk
+        product: FirebaseMessaging
+      - package: lottie-ios
+        product: Lottie
+      - target: LumiWidgetExtension
+    entitlements:
+      path: Lumi/Lumi.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.tease.lumi
+    info:
+      path: Lumi/Info.plist
+      properties:
+        UIUserInterfaceStyle: Light
+        UIBackgroundModes:
+          - remote-notification
+        UIAppFonts:
+          - NotoSerif-Regular.ttf
+          - NotoSerifDisplay-Light.ttf
+          - PlusJakartaSans-Regular.ttf
+
+  LumiWidgetExtension:
+    type: app-extension
+    platform: iOS
+    product: LumiWidgetExtension
+    sources:
+      - path: LumiWidget
+        excludes:
+          - "**/.DS_Store"
+      - path: Lumi/Fonts
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tease.lumi.widget
+        INFOPLIST_GENERATION_MODE: GeneratedFile
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_CFBundleDisplayName: "Lumi Widget"
+    info:
+      path: LumiWidget/Info.plist
+      properties:
+        UIAppFonts:
+          - NotoSerif-Regular.ttf
+          - NotoSerifDisplay-Light.ttf
+          - PlusJakartaSans-Regular.ttf
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: LumiWidget/LumiWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.tease.lumi
