@@ -5,6 +5,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
+import { t } from "./i18n.js";
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 initializeApp();
@@ -15,6 +16,16 @@ const RATE_LIMIT_PER_HOUR = 10;
 const MAX_STRIKES = 3;
 const MAX_BATCH_SIZE = 20;
 const DEFAULT_MODEL = "gemini-2.0-flash-lite";
+
+/** Fetch a user's preferred language from their user doc. Falls back to "en". */
+async function getUserLocale(uid: string): Promise<string> {
+  try {
+    const doc = await db.collection("users").doc(uid).get();
+    return (doc.data()?.language as string) || "en";
+  } catch {
+    return "en";
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PRE-FILTERS — pure TypeScript, zero AI cost
@@ -398,6 +409,7 @@ export const moderateMessageBatch = onSchedule(
       id: string;
       text: string;
       senderId: string;
+      targetUserId?: string;
       ref: FirebaseFirestore.DocumentReference;
     }
 
@@ -405,6 +417,7 @@ export const moderateMessageBatch = onSchedule(
       id: doc.id,
       text: doc.data().text as string,
       senderId: doc.data().senderId as string,
+      targetUserId: doc.data().targetUserId as string | undefined,
       ref: doc.ref,
     }));
 
@@ -445,6 +458,7 @@ export const moderateMessageBatch = onSchedule(
     const toShadowban: PendingMsg[] = [];
     const toRateLimit: PendingMsg[] = [];
     const toAutoReject: Array<PendingMsg & { reason: string }> = [];
+    const pairApproved: PendingMsg[] = [];
     const forAI: PendingMsg[] = [];
 
     // Running rate limit count per user (process chronologically)
@@ -473,12 +487,20 @@ export const moderateMessageBatch = onSchedule(
         continue;
       }
 
+      // Pair messages: pre-filter only, skip AI (safety net for direct writes)
+      if (msg.targetUserId) {
+        pairApproved.push(msg);
+        continue;
+      }
+
       // Passed all pre-filters → send to AI
       forAI.push(msg);
     }
 
     // ── Step 5: AI moderation in batches ───────────────────────────────
-    const toApprove: Array<PendingMsg & { aiMood?: string }> = [];
+    const toApprove: Array<PendingMsg & { aiMood?: string }> = [
+      ...pairApproved, // pair messages already passed pre-filters
+    ];
     const toAIReject: PendingMsg[] = [];
     const toPendingReview: PendingMsg[] = [];
 
@@ -548,6 +570,40 @@ export const moderateMessageBatch = onSchedule(
     }
 
     await writeBatch.commit();
+
+    // ── Step 6b: Send instant push for approved pair messages ─────────
+    const messaging = getMessaging();
+    for (const msg of toApprove) {
+      if (!msg.targetUserId) continue;
+      try {
+        const targetDoc = await db.collection("users").doc(msg.targetUserId).get();
+        const targetToken = targetDoc.data()?.fcmToken as string | undefined;
+        const targetLocale = (targetDoc.data()?.language as string) || "en";
+
+        await db.collection("notifications").add({
+          userId: msg.targetUserId,
+          type: "pair_message",
+          messageId: msg.id,
+          fromUserId: msg.senderId,
+          createdAt: FieldValue.serverTimestamp(),
+          read: false,
+        });
+
+        if (targetToken) {
+          await messaging.send({
+            token: targetToken,
+            notification: {
+              title: t("notif.scheduled_default_title", targetLocale),
+              body: t("notif.pair_message_received", targetLocale),
+            },
+            data: { type: "pair_message", messageId: msg.id },
+            apns: { payload: { aps: { sound: "default" } } },
+          });
+        }
+      } catch (error) {
+        console.error(`Pair message notification failed for ${msg.id}:`, error);
+      }
+    }
 
     // ── Step 7: Update strikes for all rejected messages ──────────────
     const allRejected = [
@@ -620,9 +676,10 @@ export const getRandomMessage = onCall(
     );
 
     if (candidates.length === 0) {
+      const myLocale = await getUserLocale(uid);
       return {
         success: false,
-        message: "No messages in the pool right now. Try again later!",
+        message: t("msg.no_messages_pool", myLocale),
       };
     }
 
@@ -706,6 +763,7 @@ export const checkConnectionCode = onCall(
 
     const friendCode = request.data?.friendCode as string | undefined;
     const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
 
     if (!friendCode) {
       throw new HttpsError("invalid-argument", "Friend code is missing.");
@@ -718,14 +776,14 @@ export const checkConnectionCode = onCall(
       .get();
 
     if (usersSnapshot.empty) {
-      return { success: false, message: "No user found with this code." };
+      return { success: false, message: t("msg.user_not_found", myLocale) };
     }
 
     const friendDoc = usersSnapshot.docs[0]!;
     const friendUid = friendDoc.id;
 
     if (friendUid === myUid) {
-      return { success: false, message: "You cannot enter your own code." };
+      return { success: false, message: t("msg.cannot_pair_self", myLocale) };
     }
 
     const connectionId = [myUid, friendUid].sort().join("_");
@@ -738,7 +796,7 @@ export const checkConnectionCode = onCall(
     if (existingConnection.exists) {
       return {
         success: false,
-        message: "You are already connected with this person.",
+        message: t("msg.already_paired", myLocale),
       };
     }
 
@@ -747,7 +805,7 @@ export const checkConnectionCode = onCall(
       establishedAt: FieldValue.serverTimestamp(),
     });
 
-    return { success: true, message: "Connection established successfully!" };
+    return { success: true, message: t("msg.connection_established", myLocale) };
   }
 );
 
@@ -761,6 +819,9 @@ export const reportMessage = onCall(
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "You must be signed in.");
     }
+
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
 
     const { messageId, reason } = request.data as {
       messageId: string;
@@ -780,7 +841,7 @@ export const reportMessage = onCall(
 
     await db.collection("reports").add({
       messageId,
-      reporterId: request.auth.uid,
+      reporterId: myUid,
       reportedUserId: messageData.senderId as string,
       reportedText: messageData.text as string,
       reason: reason ?? "",
@@ -797,7 +858,7 @@ export const reportMessage = onCall(
 
     return {
       success: true,
-      message: "Your report has been received. Thank you.",
+      message: t("msg.report_received", myLocale),
     };
   }
 );
@@ -862,6 +923,9 @@ export const submitSupportTicket = onCall(
       throw new HttpsError("unauthenticated", "You must be signed in.");
     }
 
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
+
     const { issueText } = request.data as { issueText: string };
 
     if (!issueText || issueText.trim().length === 0) {
@@ -869,7 +933,7 @@ export const submitSupportTicket = onCall(
     }
 
     await db.collection("support_tickets").add({
-      userId: request.auth.uid,
+      userId: myUid,
       issueText: issueText.trim(),
       createdAt: FieldValue.serverTimestamp(),
       status: "open",
@@ -877,13 +941,642 @@ export const submitSupportTicket = onCall(
 
     return {
       success: true,
-      message: "Your message has been received. We'll get back to you soon.",
+      message: t("msg.support_received", myLocale),
     };
   }
 );
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 8. Rate Message (Swipe)
+// 8. Send Pair Request
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const sendPairRequest = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const friendCode = request.data?.friendCode as string | undefined;
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
+
+    if (!friendCode) {
+      throw new HttpsError("invalid-argument", "Friend code is missing.");
+    }
+
+    // Find user by connection code
+    const usersSnapshot = await db
+      .collection("users")
+      .where("connectionCode", "==", friendCode)
+      .limit(1)
+      .get();
+
+    if (usersSnapshot.empty) {
+      return { success: false, message: t("msg.user_not_found", myLocale) };
+    }
+
+    const friendDoc = usersSnapshot.docs[0]!;
+    const friendUid = friendDoc.id;
+
+    if (friendUid === myUid) {
+      return { success: false, message: t("msg.cannot_pair_self", myLocale) };
+    }
+
+    // Check if banned
+    if (friendDoc.data().isBanned === true) {
+      return { success: false, message: t("msg.user_not_found", myLocale) };
+    }
+
+    // Check existing active connection
+    const connectionId = [myUid, friendUid].sort().join("_");
+    const existingConn = await db.collection("connections").doc(connectionId).get();
+    if (existingConn.exists && existingConn.data()?.status === "active") {
+      return { success: false, message: t("msg.already_paired", myLocale) };
+    }
+
+    // Check if they already sent us a pending request → auto-accept (mutual match)
+    const mutualRequest = await db
+      .collection("pair_requests")
+      .where("fromUserId", "==", friendUid)
+      .where("toUserId", "==", myUid)
+      .where("status", "==", "pending")
+      .limit(1)
+      .get();
+
+    if (!mutualRequest.empty) {
+      const mutualDoc = mutualRequest.docs[0]!;
+      // Auto-accept: update their request + create connection
+      await mutualDoc.ref.update({
+        status: "accepted",
+        respondedAt: FieldValue.serverTimestamp(),
+      });
+
+      await db.collection("connections").doc(connectionId).set({
+        users: [myUid, friendUid].sort(),
+        establishedAt: FieldValue.serverTimestamp(),
+        status: "active",
+        dissolvedAt: null,
+        dissolvedBy: null,
+        nicknames: { [myUid]: null, [friendUid]: null },
+        pairRequestId: mutualDoc.id,
+      });
+
+      // Notify both
+      await db.collection("notifications").add({
+        userId: friendUid,
+        type: "pair_accepted",
+        pairRequestId: mutualDoc.id,
+        fromUserId: myUid,
+        createdAt: FieldValue.serverTimestamp(),
+        read: false,
+      });
+
+      // FCM push to friend
+      const friendToken = friendDoc.data().fcmToken as string | undefined;
+      if (friendToken) {
+        const friendLocale = (friendDoc.data().language as string) || "en";
+        const messaging = getMessaging();
+        try {
+          await messaging.send({
+            token: friendToken,
+            notification: {
+              title: t("notif.scheduled_default_title", friendLocale),
+              body: t("notif.pair_auto_matched", friendLocale),
+            },
+            data: { type: "pair_accepted" },
+            apns: { payload: { aps: { sound: "default" } } },
+          });
+        } catch { /* ignore FCM errors */ }
+      }
+
+      return { success: true, requestId: mutualDoc.id, autoMatched: true, connectionId };
+    }
+
+    // Check for existing pending request from me to them
+    const existingRequest = await db
+      .collection("pair_requests")
+      .where("fromUserId", "==", myUid)
+      .where("toUserId", "==", friendUid)
+      .where("status", "==", "pending")
+      .limit(1)
+      .get();
+
+    if (!existingRequest.empty) {
+      return { success: false, message: t("msg.duplicate_request", myLocale) };
+    }
+
+    // Fetch sender's connection code for display in notification
+    const myUserDoc = await db.collection("users").doc(myUid).get();
+    const myCode = (myUserDoc.data()?.connectionCode as string) ?? "";
+
+    // Create pair request
+    const requestRef = await db.collection("pair_requests").add({
+      fromUserId: myUid,
+      toUserId: friendUid,
+      fromUserCode: myCode,
+      status: "pending",
+      createdAt: FieldValue.serverTimestamp(),
+      respondedAt: null,
+    });
+
+    // Create notification for target user
+    await db.collection("notifications").add({
+      userId: friendUid,
+      type: "pair_request",
+      pairRequestId: requestRef.id,
+      fromUserId: myUid,
+      fromUserCode: myCode,
+      createdAt: FieldValue.serverTimestamp(),
+      read: false,
+    });
+
+    // FCM push to friend — include sender's code
+    const friendToken = friendDoc.data().fcmToken as string | undefined;
+    if (friendToken) {
+      const friendLocale = (friendDoc.data().language as string) || "en";
+      const messaging = getMessaging();
+      try {
+        await messaging.send({
+          token: friendToken,
+          notification: {
+            title: t("notif.scheduled_default_title", friendLocale),
+            body: t("notif.pair_request_received", friendLocale, { code: myCode }),
+          },
+          data: { type: "pair_request", requestId: requestRef.id, fromUserCode: myCode },
+          apns: { payload: { aps: { sound: "default" } } },
+        });
+      } catch { /* ignore FCM errors */ }
+    }
+
+    return { success: true, requestId: requestRef.id, autoMatched: false };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9. Respond to Pair Request
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const respondToPairRequest = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const { requestId, response } = request.data as {
+      requestId: string;
+      response: "accept" | "reject";
+    };
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
+
+    if (!requestId || !response) {
+      throw new HttpsError("invalid-argument", "Request ID and response are required.");
+    }
+    if (response !== "accept" && response !== "reject") {
+      throw new HttpsError("invalid-argument", "Response must be 'accept' or 'reject'.");
+    }
+
+    const requestRef = db.collection("pair_requests").doc(requestId);
+    const requestDoc = await requestRef.get();
+
+    if (!requestDoc.exists) {
+      throw new HttpsError("not-found", "Pair request not found.");
+    }
+
+    const reqData = requestDoc.data()!;
+    if (reqData.toUserId !== myUid) {
+      throw new HttpsError("permission-denied", "This request is not for you.");
+    }
+    if (reqData.status !== "pending") {
+      return { success: false, message: t("msg.request_already_handled", myLocale) };
+    }
+
+    const fromUid = reqData.fromUserId as string;
+
+    if (response === "reject") {
+      await requestRef.update({
+        status: "rejected",
+        respondedAt: FieldValue.serverTimestamp(),
+      });
+      return { success: true, message: t("msg.request_declined", myLocale) };
+    }
+
+    // Accept: create connection
+    await requestRef.update({
+      status: "accepted",
+      respondedAt: FieldValue.serverTimestamp(),
+    });
+
+    const connectionId = [myUid, fromUid].sort().join("_");
+    await db.collection("connections").doc(connectionId).set({
+      users: [myUid, fromUid].sort(),
+      establishedAt: FieldValue.serverTimestamp(),
+      status: "active",
+      dissolvedAt: null,
+      dissolvedBy: null,
+      nicknames: { [myUid]: null, [fromUid]: null },
+      pairRequestId: requestId,
+    });
+
+    // Notify the requester
+    await db.collection("notifications").add({
+      userId: fromUid,
+      type: "pair_accepted",
+      pairRequestId: requestId,
+      fromUserId: myUid,
+      createdAt: FieldValue.serverTimestamp(),
+      read: false,
+    });
+
+    // FCM push
+    const fromUserDoc = await db.collection("users").doc(fromUid).get();
+    const fromToken = fromUserDoc.data()?.fcmToken as string | undefined;
+    if (fromToken) {
+      const fromLocale = (fromUserDoc.data()?.language as string) || "en";
+      const messaging = getMessaging();
+      try {
+        await messaging.send({
+          token: fromToken,
+          notification: {
+            title: t("notif.scheduled_default_title", fromLocale),
+            body: t("notif.pair_request_accepted", fromLocale),
+          },
+          data: { type: "pair_accepted", connectionId },
+          apns: { payload: { aps: { sound: "default" } } },
+        });
+      } catch { /* ignore */ }
+    }
+
+    return { success: true, connectionId };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 10. Dissolve Pair
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const dissolvePair = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const connectionId = request.data?.connectionId as string | undefined;
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
+
+    if (!connectionId) {
+      throw new HttpsError("invalid-argument", "Connection ID is missing.");
+    }
+
+    const connRef = db.collection("connections").doc(connectionId);
+    const connDoc = await connRef.get();
+
+    if (!connDoc.exists) {
+      throw new HttpsError("not-found", "Connection not found.");
+    }
+
+    const connData = connDoc.data()!;
+    const users = connData.users as string[];
+    if (!users.includes(myUid)) {
+      throw new HttpsError("permission-denied", "You are not part of this connection.");
+    }
+    if (connData.status !== "active") {
+      return { success: false, message: t("msg.connection_dissolved", myLocale) };
+    }
+
+    await connRef.update({
+      status: "dissolved",
+      dissolvedAt: FieldValue.serverTimestamp(),
+      dissolvedBy: myUid,
+    });
+
+    // Notify the other user
+    const otherUid = users.find((u) => u !== myUid)!;
+    await db.collection("notifications").add({
+      userId: otherUid,
+      type: "pair_dissolved",
+      fromUserId: myUid,
+      createdAt: FieldValue.serverTimestamp(),
+      read: false,
+    });
+
+    return { success: true };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 11. Get Pair Requests
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const getPairRequests = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+
+    const [incomingSnap, outgoingSnap] = await Promise.all([
+      db.collection("pair_requests")
+        .where("toUserId", "==", uid)
+        .where("status", "==", "pending")
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get(),
+      db.collection("pair_requests")
+        .where("fromUserId", "==", uid)
+        .where("status", "==", "pending")
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get(),
+    ]);
+
+    // Collect all partner UIDs to batch-fetch their codes
+    const partnerUids = new Set<string>();
+    for (const doc of incomingSnap.docs) {
+      partnerUids.add(doc.data().fromUserId as string);
+    }
+    for (const doc of outgoingSnap.docs) {
+      partnerUids.add(doc.data().toUserId as string);
+    }
+
+    // Batch-fetch user docs to get connectionCode
+    const codeMap = new Map<string, string>();
+    if (partnerUids.size > 0) {
+      const refs = [...partnerUids].map((u) => db.collection("users").doc(u));
+      const snaps = await db.getAll(...refs);
+      for (const snap of snaps) {
+        if (snap.exists) {
+          codeMap.set(snap.id, (snap.data()?.connectionCode as string) ?? "");
+        }
+      }
+    }
+
+    const incoming = incomingSnap.docs.map((doc) => ({
+      id: doc.id,
+      fromUserId: doc.data().fromUserId as string,
+      toUserId: doc.data().toUserId as string,
+      fromUserCode: codeMap.get(doc.data().fromUserId as string) ?? "",
+      status: doc.data().status as string,
+      createdAt: doc.data().createdAt,
+    }));
+
+    const outgoing = outgoingSnap.docs.map((doc) => ({
+      id: doc.id,
+      fromUserId: doc.data().fromUserId as string,
+      toUserId: doc.data().toUserId as string,
+      toUserCode: codeMap.get(doc.data().toUserId as string) ?? "",
+      status: doc.data().status as string,
+      createdAt: doc.data().createdAt,
+    }));
+
+    return { incoming, outgoing };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 12. Get My Pairs
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const getMyPairs = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+
+    const connSnap = await db
+      .collection("connections")
+      .where("users", "array-contains", uid)
+      .get();
+
+    const pairs = connSnap.docs
+      .filter((doc) => doc.data().status === "active")
+      .map((doc) => {
+        const data = doc.data();
+        const users = data.users as string[];
+        const partnerUid = users.find((u) => u !== uid) ?? "";
+        const nicknames = (data.nicknames ?? {}) as Record<string, string | null>;
+        return {
+          connectionId: doc.id,
+          partnerUid,
+          nickname: nicknames[uid] ?? null,
+          establishedAt: data.establishedAt,
+        };
+      });
+
+    return { pairs };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 13. Update Pair Nickname
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const updatePairNickname = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const { connectionId, nickname } = request.data as {
+      connectionId: string;
+      nickname: string;
+    };
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
+
+    if (!connectionId || !nickname) {
+      throw new HttpsError("invalid-argument", "Connection ID and nickname are required.");
+    }
+
+    const trimmed = nickname.trim();
+    if (trimmed.length === 0 || trimmed.length > 20) {
+      throw new HttpsError("invalid-argument", "Nickname must be 1-20 characters.");
+    }
+
+    // Profanity check on nickname
+    const filterResult = runPreFilters(trimmed);
+    if (filterResult.blocked) {
+      return { success: false, message: t("msg.nickname_blocked", myLocale) };
+    }
+
+    const connRef = db.collection("connections").doc(connectionId);
+    const connDoc = await connRef.get();
+
+    if (!connDoc.exists) {
+      throw new HttpsError("not-found", "Connection not found.");
+    }
+
+    const connData = connDoc.data()!;
+    if (!(connData.users as string[]).includes(myUid)) {
+      throw new HttpsError("permission-denied", "You are not part of this connection.");
+    }
+    if (connData.status !== "active") {
+      return { success: false, message: t("msg.connection_inactive", myLocale) };
+    }
+
+    await connRef.update({
+      [`nicknames.${myUid}`]: trimmed,
+    });
+
+    return { success: true };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 14. Send Pair Message (instant delivery, pre-filter only, no AI)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PAIR_MSG_RATE_LIMIT = 5; // per pair per hour
+
+export const sendPairMessage = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const myUid = request.auth.uid;
+    const myLocale = await getUserLocale(myUid);
+    const { text, mood, targetUserId } = request.data as {
+      text: string;
+      mood: string;
+      targetUserId: string;
+    };
+
+    if (!text || !targetUserId) {
+      throw new HttpsError("invalid-argument", "Text and target user are required.");
+    }
+    if (text.length === 0 || text.length > 200) {
+      throw new HttpsError("invalid-argument", "Message must be 1-200 characters.");
+    }
+    if (targetUserId === myUid) {
+      throw new HttpsError("invalid-argument", "Cannot send a message to yourself.");
+    }
+
+    // Verify active connection exists
+    const connectionId = [myUid, targetUserId].sort().join("_");
+    const connDoc = await db.collection("connections").doc(connectionId).get();
+    if (!connDoc.exists || connDoc.data()?.status !== "active") {
+      throw new HttpsError("permission-denied", "You are not paired with this user.");
+    }
+
+    // Shadowban check
+    const senderDoc = await db.collection("users").doc(myUid).get();
+    if (senderDoc.data()?.isBanned === true) {
+      // Silently accept but don't deliver (shadowban)
+      await db.collection("messages").add({
+        text,
+        senderId: myUid,
+        targetUserId,
+        mood: mood || "Peaceful",
+        status: "shadowbanned",
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      return { success: true, message: t("msg.sent", myLocale) };
+    }
+
+    // Rate limit: per pair per hour (uses senderId+createdAt index, filters targetUserId in code)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentSnap = await db
+      .collection("messages")
+      .where("senderId", "==", myUid)
+      .where("createdAt", ">=", oneHourAgo)
+      .get();
+
+    const pairMsgCount = recentSnap.docs.filter(
+      (doc) => doc.data().targetUserId === targetUserId
+    ).length;
+
+    if (pairMsgCount >= PAIR_MSG_RATE_LIMIT) {
+      return {
+        success: false,
+        message: t("msg.rate_limit_pair", myLocale, { limit: PAIR_MSG_RATE_LIMIT }),
+      };
+    }
+
+    // Pre-filters only (NO AI moderation)
+    const filterResult = runPreFilters(text);
+    if (filterResult.blocked) {
+      // Still save the message as rejected + increment strikes
+      await db.collection("messages").add({
+        text,
+        senderId: myUid,
+        targetUserId,
+        mood: mood || "Peaceful",
+        status: "rejected",
+        rejectionReason: filterResult.reason,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+
+      // Increment strikes
+      const currentStrikes = (senderDoc.data()?.strikes as number | undefined) ?? 0;
+      const updates: Record<string, unknown> = {
+        strikes: FieldValue.increment(1),
+      };
+      if (currentStrikes + 1 >= MAX_STRIKES) {
+        updates.isBanned = true;
+      }
+      await db.collection("users").doc(myUid).set(updates, { merge: true });
+
+      return { success: false, message: t("msg.delivery_failed", myLocale) };
+    }
+
+    // Approved! Write message directly as approved
+    const msgRef = await db.collection("messages").add({
+      text,
+      senderId: myUid,
+      targetUserId,
+      mood: mood || "Peaceful",
+      status: "approved",
+      approvedAt: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    // Create notification
+    await db.collection("notifications").add({
+      userId: targetUserId,
+      type: "pair_message",
+      messageId: msgRef.id,
+      fromUserId: myUid,
+      createdAt: FieldValue.serverTimestamp(),
+      read: false,
+    });
+
+    // FCM push
+    const targetDoc = await db.collection("users").doc(targetUserId).get();
+    const targetToken = targetDoc.data()?.fcmToken as string | undefined;
+    if (targetToken) {
+      const targetLocale = (targetDoc.data()?.language as string) || "en";
+      const messaging = getMessaging();
+      try {
+        await messaging.send({
+          token: targetToken,
+          notification: {
+            title: t("notif.scheduled_default_title", targetLocale),
+            body: t("notif.pair_message_received", targetLocale),
+          },
+          data: { type: "pair_message", messageId: msgRef.id },
+          apns: { payload: { aps: { sound: "default" } } },
+        });
+      } catch { /* ignore FCM errors */ }
+    }
+
+    return { success: true, message: t("msg.sent", myLocale), messageId: msgRef.id };
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 15. Rate Message (Swipe)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const rateMessage = onCall(
@@ -894,6 +1587,7 @@ export const rateMessage = onCall(
     }
 
     const uid = request.auth.uid;
+    const myLocale = await getUserLocale(uid);
     const { messageId, rating } = request.data as {
       messageId: string;
       rating: "positive" | "negative";
@@ -921,7 +1615,7 @@ export const rateMessage = onCall(
     }
 
     if (messageDoc.data()?.senderId === uid) {
-      return { success: false, message: "You cannot rate your own message." };
+      return { success: false, message: t("msg.cannot_rate_own", myLocale) };
     }
 
     const existingRating = await db
@@ -934,7 +1628,7 @@ export const rateMessage = onCall(
     if (!existingRating.empty) {
       return {
         success: false,
-        message: "You have already rated this message.",
+        message: t("msg.already_rated", myLocale),
       };
     }
 
@@ -970,16 +1664,75 @@ export const getMessageFeed = onCall(
     const mood = request.data?.mood as string | undefined;
     const batchSize = 10;
 
-    const ratedSnap = await db
-      .collection("ratings")
-      .where("userId", "==", uid)
-      .select("messageId")
-      .get();
+    // Fetch rated message IDs + active pair partner UIDs in parallel
+    const [ratedSnap, pairsSnap] = await Promise.all([
+      db.collection("ratings")
+        .where("userId", "==", uid)
+        .select("messageId")
+        .get(),
+      db.collection("connections")
+        .where("users", "array-contains", uid)
+        .get(),
+    ]);
 
     const ratedIds = new Set(
       ratedSnap.docs.map((doc) => doc.data().messageId as string)
     );
 
+    // Build partner UID set + nickname map (my nickname for each partner)
+    const partnerUids = new Set<string>();
+    const partnerNicknames = new Map<string, string>(); // partnerUid → nickname I gave them
+    const partnerCodes = new Map<string, string>(); // partnerUid → connectionCode (fetched below)
+
+    for (const doc of pairsSnap.docs) {
+      if (doc.data().status !== "active") continue;
+      const users = doc.data().users as string[];
+      const partnerUid = users.find((u) => u !== uid) ?? "";
+      if (!partnerUid) continue;
+      partnerUids.add(partnerUid);
+      const nicknames = (doc.data().nicknames ?? {}) as Record<string, string | null>;
+      if (nicknames[uid]) {
+        partnerNicknames.set(partnerUid, nicknames[uid]!);
+      }
+    }
+
+    // Batch-fetch partner user docs for connectionCode fallback
+    if (partnerUids.size > 0) {
+      const partnerRefs = [...partnerUids].map((u) => db.collection("users").doc(u));
+      const partnerSnaps = await db.getAll(...partnerRefs);
+      for (const snap of partnerSnaps) {
+        if (snap.exists) {
+          partnerCodes.set(snap.id, (snap.data()?.connectionCode as string) ?? "");
+        }
+      }
+    }
+
+    // 1. Direct pair messages (targetUserId === me)
+    const pairMsgSnap = partnerUids.size > 0
+      ? await db.collection("messages")
+          .where("targetUserId", "==", uid)
+          .where("status", "==", "approved")
+          .orderBy("approvedAt", "desc")
+          .limit(batchSize)
+          .get()
+      : null;
+
+    const pairMessages = (pairMsgSnap?.docs ?? [])
+      .filter((doc) => !ratedIds.has(doc.id))
+      .map((doc) => {
+        const senderId = doc.data().senderId as string;
+        return {
+          id: doc.id,
+          text: doc.data().text as string,
+          mood: doc.data().mood as string,
+          isPairMessage: true,
+          isFromPair: true,
+          senderName: partnerNicknames.get(senderId) || partnerCodes.get(senderId) || "",
+        };
+      });
+
+    // 2. Global pool (no targetUserId)
+    const remaining = batchSize - pairMessages.length;
     let query = db
       .collection("messages")
       .where("status", "==", "approved") as FirebaseFirestore.Query;
@@ -988,18 +1741,33 @@ export const getMessageFeed = onCall(
       query = query.where("mood", "==", mood);
     }
 
-    const snapshot = await query.limit(batchSize * 3).get();
+    const snapshot = await query.limit(remaining * 3).get();
 
-    const feed = snapshot.docs
+    const globalFeed = snapshot.docs
       .filter(
-        (doc) => doc.data().senderId !== uid && !ratedIds.has(doc.id)
+        (doc) =>
+          doc.data().senderId !== uid &&
+          !ratedIds.has(doc.id) &&
+          !doc.data().targetUserId // exclude direct pair messages from global
       )
-      .slice(0, batchSize)
-      .map((doc) => ({
-        id: doc.id,
-        text: doc.data().text as string,
-        mood: doc.data().mood as string,
-      }));
+      .slice(0, remaining)
+      .map((doc) => {
+        const senderId = doc.data().senderId as string;
+        const fromPair = partnerUids.has(senderId);
+        return {
+          id: doc.id,
+          text: doc.data().text as string,
+          mood: doc.data().mood as string,
+          isPairMessage: false,
+          isFromPair: fromPair,
+          senderName: fromPair
+            ? (partnerNicknames.get(senderId) || partnerCodes.get(senderId) || "")
+            : "",
+        };
+      });
+
+    // Pair messages first, then global
+    const feed = [...pairMessages, ...globalFeed];
 
     return { success: true, messages: feed };
   }

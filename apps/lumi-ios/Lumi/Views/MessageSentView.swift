@@ -72,7 +72,7 @@ struct MessageSentView: View {
                 // Typography
                 VStack(spacing: 20) {
                     // Heading
-                    Text("Your message has\ndissolved into the\nlight")
+                    Text("message_sent.title")
                         .font(.custom("NotoSerif-Regular", size: 30))
                         .foregroundStyle(LumiTheme.primary)
                         .multilineTextAlignment(.center)
@@ -81,7 +81,7 @@ struct MessageSentView: View {
                         .fixedSize(horizontal: false, vertical: true)
 
                     // Subtitle
-                    Text("CARRIED BY THE SILENT WINDS OF\nTHE SANCTUARY")
+                    Text("message_sent.subtitle")
                         .font(.custom("PlusJakartaSans-Regular", size: 10))
                         .fontWeight(.medium)
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
@@ -98,7 +98,7 @@ struct MessageSentView: View {
                 // Return to the Garden button (glass pill)
                 Button(action: onDismiss) {
                     HStack(spacing: 12) {
-                        Text("RETURN TO THE GARDEN")
+                        Text("message_sent.button")
                             .font(.custom("PlusJakartaSans-Regular", size: 12))
                             .fontWeight(.semibold)
                             .tracking(3)

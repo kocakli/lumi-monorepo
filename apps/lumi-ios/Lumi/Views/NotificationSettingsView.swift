@@ -54,11 +54,11 @@ struct NotificationSettingsView: View {
 
     private var heroSection: some View {
         VStack(spacing: 12) {
-            Text("Notifications")
+            Text("notif_settings.title")
                 .font(.custom("NotoSerif-Regular", size: 36))
                 .foregroundStyle(LumiTheme.primary)
 
-            Text("GENTLE REMINDERS")
+            Text("notif_settings.subtitle")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .foregroundStyle(LumiTheme.mutedText)
                 .tracking(2)
@@ -71,14 +71,14 @@ struct NotificationSettingsView: View {
     private var frequencySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("DAILY REMINDERS")
+                Text("notif_settings.section.daily")
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .tracking(1.2)
                     .foregroundStyle(accentPink.opacity(0.7))
 
                 Spacer()
 
-                Text(notificationService.frequency == 0 ? "Off" : "\(notificationService.frequency)/day")
+                Text(notificationService.frequency == 0 ? String(localized: "notif_settings.off") : "\(notificationService.frequency)\(String(localized: "notif_settings.per_day"))")
                     .font(.custom("PlusJakartaSans-Regular", size: 13))
                     .foregroundStyle(LumiTheme.onSurfaceVariant)
             }
@@ -93,7 +93,7 @@ struct NotificationSettingsView: View {
             )
             .tint(accentPink)
 
-            Text("How many gentle nudges per day?")
+            Text("notif_settings.frequency_description")
                 .font(.custom("PlusJakartaSans-Regular", size: 11))
                 .foregroundStyle(LumiTheme.mutedText.opacity(0.7))
         }
@@ -105,22 +105,22 @@ struct NotificationSettingsView: View {
 
     private var timeSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("PREFERRED TIME")
+            Text("notif_settings.section.time")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .tracking(1.2)
                 .foregroundStyle(accentPink.opacity(0.7))
 
             HStack(spacing: 10) {
-                periodPill("Morning", isOn: $notificationService.periodMorning, time: "08:00")
-                periodPill("Afternoon", isOn: $notificationService.periodAfternoon, time: "13:00")
-                periodPill("Evening", isOn: $notificationService.periodEvening, time: "20:00")
+                periodPill("notif_settings.period.morning", isOn: $notificationService.periodMorning, time: "08:00")
+                periodPill("notif_settings.period.afternoon", isOn: $notificationService.periodAfternoon, time: "13:00")
+                periodPill("notif_settings.period.evening", isOn: $notificationService.periodEvening, time: "20:00")
             }
         }
         .padding(24)
         .zenGlass(cornerRadius: 28, opacity: 0.3)
     }
 
-    private func periodPill(_ label: String, isOn: Binding<Bool>, time: String) -> some View {
+    private func periodPill(_ label: LocalizedStringKey, isOn: Binding<Bool>, time: String) -> some View {
         return Button {
             isOn.wrappedValue.toggle()
         } label: {
@@ -146,23 +146,23 @@ struct NotificationSettingsView: View {
 
     private var moodSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("CONTENT PREFERENCE")
+            Text("notif_settings.section.content")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .tracking(1.2)
                 .foregroundStyle(accentPink.opacity(0.7))
 
             VStack(spacing: 0) {
-                moodToggle("Peaceful", description: "Calm & comforting", isOn: $notificationService.moodPeaceful)
-                moodToggle("Motivating", description: "Inspiring & uplifting", isOn: $notificationService.moodMotivating)
-                moodToggle("Playful", description: "Fun & lighthearted", isOn: $notificationService.moodPlayful)
-                moodToggle("Romantic", description: "Loving & tender", isOn: $notificationService.moodRomantic)
+                moodToggle("mood.peaceful", description: "notif_settings.mood.peaceful.desc", isOn: $notificationService.moodPeaceful)
+                moodToggle("mood.motivating", description: "notif_settings.mood.motivating.desc", isOn: $notificationService.moodMotivating)
+                moodToggle("mood.playful", description: "notif_settings.mood.playful.desc", isOn: $notificationService.moodPlayful)
+                moodToggle("mood.romantic", description: "notif_settings.mood.romantic.desc", isOn: $notificationService.moodRomantic)
             }
         }
         .padding(24)
         .zenGlass(cornerRadius: 28, opacity: 0.3)
     }
 
-    private func moodToggle(_ title: String, description: String, isOn: Binding<Bool>) -> some View {
+    private func moodToggle(_ title: LocalizedStringKey, description: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -186,7 +186,7 @@ struct NotificationSettingsView: View {
     private var previewSection: some View {
         VStack(spacing: 8) {
             if notificationService.frequency == 0 {
-                Text("Notifications are turned off")
+                Text("notif_settings.off_status")
                     .font(.custom("PlusJakartaSans-Regular", size: 13))
                     .foregroundStyle(LumiTheme.mutedText)
             } else {

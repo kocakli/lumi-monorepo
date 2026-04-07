@@ -95,7 +95,7 @@ struct VaultView: View {
 
     private var heroSection: some View {
         VStack(spacing: 20) {
-            Text("Saved\nMoments")
+            Text("vault.title")
                 .font(LumiTheme.notoSerifDisplay(size: 48, weight: 400))
                 .foregroundStyle(LumiTheme.primary)
                 .multilineTextAlignment(.center)
@@ -105,7 +105,7 @@ struct VaultView: View {
                 .fill(Color(red: 0.992, green: 0.776, blue: 0.678))
                 .frame(width: 48, height: 1)
 
-            Text("A SANCTUARY FOR YOUR THOUGHTS")
+            Text("vault.subtitle")
                 .font(.custom("PlusJakartaSans-Regular", size: 11))
                 .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400))
                 .kerning(3.3)
@@ -120,10 +120,10 @@ struct VaultView: View {
                     .padding(.top, 60)
             } else if viewModel.moments.isEmpty {
                 VStack(spacing: 12) {
-                    Text("No saved moments yet")
+                    Text("vault.empty.title")
                         .font(LumiTheme.notoSerifDisplayLight(size: 20))
                         .foregroundStyle(LumiTheme.primary)
-                    Text("Swipe right on messages and tap Save to keep them here")
+                    Text("vault.empty.subtitle")
                         .font(.custom("PlusJakartaSans-Regular", size: 14))
                         .foregroundStyle(LumiTheme.mutedText)
                         .multilineTextAlignment(.center)

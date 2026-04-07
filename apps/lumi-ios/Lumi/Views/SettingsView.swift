@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var isShowingSupport = false
     @State private var showDatePicker = false
     @State private var dragOffset: CGFloat = 0
+    @StateObject private var pairingVM = PairingViewModel()
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,7 @@ struct SettingsView: View {
                             heroSection
                             privateConnectionCard
                             pairSanctuaryCard
+                            yourPairsCard
                             preferencesSection
                             sensitiveDaysCard
                             dangerZone
@@ -73,11 +75,11 @@ struct SettingsView: View {
 
     private var heroSection: some View {
         VStack(spacing: 16) {
-            Text("Settings")
+            Text("settings.title")
                 .font(.custom("NotoSerif-Regular", size: 48))
                 .foregroundStyle(Color(red: 0.388, green: 0.361, blue: 0.380))
 
-            Text("YOUR DIGITAL SANCTUARY")
+            Text("settings.subtitle")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .foregroundStyle(Color(red: 0.294, green: 0.271, blue: 0.286))
                 .tracking(2)
@@ -100,11 +102,11 @@ struct SettingsView: View {
 
     private var privateConnectionHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Private Connection")
+            Text("settings.private_connection")
                 .font(.custom("NotoSerif-Regular", size: 24))
                 .foregroundStyle(Color(red: 0.388, green: 0.361, blue: 0.380))
 
-            Text("Securely sync your presence without sharing your identity.")
+            Text("settings.private_connection.description")
                 .font(.custom("PlusJakartaSans-Light", size: 14))
                 .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400))
         }
@@ -113,13 +115,13 @@ struct SettingsView: View {
 
     private var privateConnectionCodeBox: some View {
         VStack(spacing: 12) {
-            Text("MY PRIVATE CODE")
+            Text("settings.my_code")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400))
                 .tracking(1)
                 .textCase(.uppercase)
 
-            Text("LUMI-84X2")
+            Text(pairingVM.myCode.isEmpty ? String(localized: "common.loading") : pairingVM.myCode)
                 .font(.custom("NotoSerif-Regular", size: 30))
                 .foregroundStyle(LumiTheme.secondary)
                 .tracking(3)
@@ -138,9 +140,9 @@ struct SettingsView: View {
 
     private var copyCodeButton: some View {
         Button(action: {
-            UIPasteboard.general.string = "LUMI-84X2"
+            UIPasteboard.general.string = pairingVM.myCode
         }) {
-            Text("COPY CODE")
+            Text("settings.copy_code")
                 .font(.custom("PlusJakartaSans-Regular", size: 12))
                 .tracking(1.2)
                 .textCase(.uppercase)
@@ -210,11 +212,11 @@ struct SettingsView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Pair Your Sanctuary")
+                Text("settings.pair_sanctuary")
                     .font(.custom("NotoSerif-Regular", size: 24))
                     .foregroundStyle(Color(red: 0.388, green: 0.361, blue: 0.380))
 
-                Text("Link another device to your mindful space.")
+                Text("settings.pair_sanctuary.description")
                     .font(.custom("PlusJakartaSans-Light", size: 14))
                     .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400))
             }
@@ -224,7 +226,7 @@ struct SettingsView: View {
 
     private var pairDeviceButton: some View {
         NavigationLink(destination: ConnectionCodeView()) {
-            Text("PAIR DEVICE")
+            Text("settings.pair_device")
                 .font(.custom("PlusJakartaSans-Regular", size: 12))
                 .tracking(1.2)
                 .textCase(.uppercase)
@@ -243,11 +245,54 @@ struct SettingsView: View {
         )
     }
 
+    // MARK: - Your Pairs Card
+
+    private var yourPairsCard: some View {
+        Button(action: { router.navigate(to: .pairs) }) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(LumiTheme.sparklePink.opacity(0.2))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(LumiTheme.sparklePink)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("settings.your_pairs")
+                        .font(.custom("NotoSerif-Regular", size: 20))
+                        .foregroundStyle(LumiTheme.primary)
+
+                    Text(pairingVM.pairs.isEmpty
+                         ? String(localized: "settings.no_pairs")
+                         : "\(pairingVM.pairs.count) soul\(pairingVM.pairs.count == 1 ? "" : "s") connected")
+                        .font(.custom("PlusJakartaSans-Regular", size: 14))
+                        .foregroundStyle(LumiTheme.onSurfaceVariant)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.5))
+            }
+            .padding(24)
+            .zenGlass(cornerRadius: 28, opacity: 0.3)
+        }
+        .buttonStyle(.plain)
+        .task {
+            await pairingVM.loadMyCode()
+            await pairingVM.loadPairs()
+        }
+    }
+
     // MARK: - Preferences Section
 
     private var preferencesSection: some View {
         VStack(alignment: .leading, spacing: 32) {
-            Text("Preferences")
+            Text("settings.preferences")
                 .font(.custom("NotoSerif-Regular", size: 24))
                 .foregroundStyle(Color(red: 0.388, green: 0.361, blue: 0.380))
                 .padding(.horizontal, 16)
@@ -282,19 +327,19 @@ struct SettingsView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Notifications")
+                    Text("settings.pref.notifications")
                         .font(.custom("PlusJakartaSans-Regular", size: 14))
                         .fontWeight(.medium)
                         .foregroundStyle(LumiTheme.onSurface)
 
-                    Text("Gentle reminders and soft pings")
+                    Text("settings.pref.notifications.desc")
                         .font(.custom("PlusJakartaSans-Regular", size: 12))
                         .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400).opacity(0.7))
                 }
 
                 Spacer()
 
-                Text(notificationService.frequency == 0 ? "Off" : "\(notificationService.frequency)/day")
+                Text(notificationService.frequency == 0 ? String(localized: "notif_settings.off") : "\(notificationService.frequency)\(String(localized: "notif_settings.per_day"))")
                     .font(.custom("PlusJakartaSans-Regular", size: 12))
                     .foregroundStyle(LumiTheme.mutedText)
 
@@ -322,12 +367,12 @@ struct SettingsView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Stealth Mode")
+                Text("settings.pref.stealth")
                     .font(.custom("PlusJakartaSans-Regular", size: 14))
                     .fontWeight(.medium)
                     .foregroundStyle(LumiTheme.onSurface)
 
-                Text("Browse without leaving a trace")
+                Text("settings.pref.stealth.desc")
                     .font(.custom("PlusJakartaSans-Regular", size: 12))
                     .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400).opacity(0.7))
             }
@@ -383,13 +428,13 @@ struct SettingsView: View {
             sensitiveDaysBadge
 
             // Title
-            Text("Sensitive Days Mode")
+            Text("sensitive.title")
                 .font(.custom("NotoSerif-Regular", size: 30))
                 .foregroundStyle(LumiTheme.onSurface)
                 .padding(.top, 44)
 
             // Description
-            Text("Adjust the kind of messages you receive during sensitive times. We'll send gentler, more nurturing words.")
+            Text("sensitive.description")
                 .font(.custom("PlusJakartaSans-Regular", size: 14))
                 .foregroundStyle(Color(red: 0.341, green: 0.325, blue: 0.306))
                 .lineSpacing(8.75)
@@ -418,7 +463,7 @@ struct SettingsView: View {
                 .frame(width: 12, height: 12)
                 .foregroundStyle(Color(red: 0.925, green: 0.286, blue: 0.600))
 
-            Text("SPECIAL CARE")
+            Text("sensitive.badge")
                 .font(.custom("PlusJakartaSans-SemiBold", size: 10))
                 .foregroundStyle(Color(red: 0.925, green: 0.286, blue: 0.600))
                 .tracking(1)
@@ -433,7 +478,7 @@ struct SettingsView: View {
 
     private var sensitiveDaysToggleRow: some View {
         HStack {
-            Text(sensitiveDays.isEnabled ? "ENABLED" : "DISABLED")
+            Text(sensitiveDays.isEnabled ? LocalizedStringKey("sensitive.enabled") : LocalizedStringKey("sensitive.disabled"))
                 .font(.custom("PlusJakartaSans-Regular", size: 12))
                 .tracking(1.2)
                 .foregroundStyle(Color(red: 0.957, green: 0.447, blue: 0.714))
@@ -487,19 +532,19 @@ struct SettingsView: View {
                 .frame(height: 1)
 
             // Question
-            Text("When do you usually feel more sensitive?")
+            Text("sensitive.question")
                 .font(.custom("NotoSerif-Regular", size: 16))
                 .foregroundStyle(LumiTheme.onSurface)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("Lumi will send extra gentle messages during these days.")
+            Text("sensitive.helper")
                 .font(.custom("PlusJakartaSans-Regular", size: 12))
                 .foregroundStyle(LumiTheme.mutedText)
                 .fixedSize(horizontal: false, vertical: true)
 
             // Last sensitive period date picker
             VStack(alignment: .leading, spacing: 8) {
-                Text("LAST SENSITIVE PERIOD")
+                Text("sensitive.last_period")
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .tracking(1.2)
                     .foregroundStyle(sensitivePink.opacity(0.7))
@@ -557,14 +602,14 @@ struct SettingsView: View {
             // Duration slider (3-10 days) — same style as cycle length
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("DURATION")
+                    Text("sensitive.duration")
                         .font(.custom("PlusJakartaSans-Regular", size: 10))
                         .tracking(1.2)
                         .foregroundStyle(sensitivePink.opacity(0.7))
 
                     Spacer()
 
-                    Text("\(sensitiveDays.duration) days")
+                    Text("\(sensitiveDays.duration) \(String(localized: "sensitive.days_unit"))")
                         .font(.custom("PlusJakartaSans-Regular", size: 13))
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
                 }
@@ -579,7 +624,7 @@ struct SettingsView: View {
                 )
                 .tint(sensitivePink)
 
-                Text("How many days does your sensitive period last?")
+                Text("sensitive.duration_desc")
                     .font(.custom("PlusJakartaSans-Regular", size: 11))
                     .foregroundStyle(LumiTheme.mutedText.opacity(0.7))
             }
@@ -587,14 +632,14 @@ struct SettingsView: View {
             // Cycle length slider (21-40 days)
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("CYCLE LENGTH")
+                    Text("sensitive.cycle_length")
                         .font(.custom("PlusJakartaSans-Regular", size: 10))
                         .tracking(1.2)
                         .foregroundStyle(sensitivePink.opacity(0.7))
 
                     Spacer()
 
-                    Text("\(sensitiveDays.cycleLength) days")
+                    Text("\(sensitiveDays.cycleLength) \(String(localized: "sensitive.days_unit"))")
                         .font(.custom("PlusJakartaSans-Regular", size: 13))
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
                 }
@@ -609,7 +654,7 @@ struct SettingsView: View {
                 )
                 .tint(sensitivePink)
 
-                Text("How often does this cycle repeat?")
+                Text("sensitive.cycle_desc")
                     .font(.custom("PlusJakartaSans-Regular", size: 11))
                     .foregroundStyle(LumiTheme.mutedText.opacity(0.7))
             }
@@ -634,11 +679,11 @@ struct SettingsView: View {
                         .foregroundStyle(sensitivePink)
                         .padding(.trailing, 6)
 
-                    Text("Gentle mode is active now")
+                    Text("sensitive.active_now")
                         .font(.custom("PlusJakartaSans-Regular", size: 12))
                         .foregroundStyle(sensitivePink)
                 } else {
-                    Text("Next: ")
+                    Text("\(String(localized: "sensitive.next_label")) ")
                         .font(.custom("PlusJakartaSans-Regular", size: 12))
                         .foregroundStyle(LumiTheme.mutedText)
 
@@ -676,7 +721,7 @@ struct SettingsView: View {
     private var dangerZone: some View {
         VStack(spacing: 24) {
             Button(action: {}) {
-                Text("DEACTIVATE MY ACCOUNT")
+                Text("settings.deactivate")
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .tracking(3)
                     .textCase(.uppercase)
@@ -707,7 +752,7 @@ struct SupportView: View {
                     .ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 24) {
-                    Text("How can we\nhelp you?")
+                    Text("support.title")
                         .font(.custom("NotoSerif-Regular", size: 28))
                         .foregroundStyle(LumiTheme.onSurface)
                         .lineSpacing(4)
@@ -735,7 +780,7 @@ struct SupportView: View {
                                 .foregroundStyle(
                                     hasAttachedImage ? LumiTheme.secondary : LumiTheme.primary
                                 )
-                            Text(hasAttachedImage ? "Screenshot attached" : "Attach a screenshot")
+                            Text(hasAttachedImage ? LocalizedStringKey("support.attached") : LocalizedStringKey("support.attach"))
                                 .font(.custom("PlusJakartaSans-Regular", size: 14))
                                 .foregroundStyle(LumiTheme.onSurface)
                         }
@@ -754,7 +799,7 @@ struct SupportView: View {
                     Spacer()
 
                     Button(action: { dismiss() }) {
-                        Text("SEND")
+                        Text("support.send")
                             .font(.custom("PlusJakartaSans-Regular", size: 13))
                             .fontWeight(.medium)
                             .tracking(2)

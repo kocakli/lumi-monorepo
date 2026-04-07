@@ -23,14 +23,14 @@ struct NotificationPermissionView: View {
                     .padding(.top, 8)
 
                 // Title
-                Text("Stay connected to\nyour inner light")
+                Text("notif_permission.title")
                     .font(.custom("NotoSerif-Regular", size: 24))
                     .foregroundStyle(LumiTheme.onSurface)
                     .multilineTextAlignment(.center)
                     .lineSpacing(6)
 
                 // Description
-                Text("Lumi can gently remind you to pause, breathe, and receive a kind word when you need it most.")
+                Text("notif_permission.description")
                     .font(.custom("PlusJakartaSans-Regular", size: 14))
                     .foregroundStyle(LumiTheme.mutedText)
                     .multilineTextAlignment(.center)
@@ -44,7 +44,7 @@ struct NotificationPermissionView: View {
                         dismiss()
                     }
                 } label: {
-                    Text("ALLOW GENTLE NUDGES")
+                    Text("notif_permission.allow")
                         .font(.custom("PlusJakartaSans-Regular", size: 12))
                         .fontWeight(.semibold)
                         .tracking(2)
@@ -61,7 +61,7 @@ struct NotificationPermissionView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Maybe Later")
+                    Text("notif_permission.later")
                         .font(.custom("PlusJakartaSans-Regular", size: 13))
                         .foregroundStyle(LumiTheme.mutedText)
                 }

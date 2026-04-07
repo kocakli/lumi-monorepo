@@ -41,7 +41,7 @@ struct ReceiveMessageView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.shield.fill")
                             .font(.system(size: 14))
-                        Text("Content reported and under review")
+                        Text("receive.report_confirmation")
                             .font(.custom("PlusJakartaSans-Regular", size: 13))
                     }
                     .foregroundStyle(LumiTheme.onSurface)
@@ -110,13 +110,13 @@ struct ReceiveMessageView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("No more messages")
+            Text("receive.empty.title")
                 .font(LumiTheme.notoSerifDisplayLight(size: 24))
                 .foregroundStyle(LumiTheme.primary)
-            Text("Come back later for new messages")
+            Text("receive.empty.subtitle")
                 .font(.custom("PlusJakartaSans-Regular", size: 14))
                 .foregroundStyle(LumiTheme.mutedText)
-            Button("Refresh") {
+            Button("receive.refresh") {
                 Task { await viewModel.loadFeed() }
             }
             .font(.custom("PlusJakartaSans-Regular", size: 14))
@@ -130,7 +130,7 @@ struct ReceiveMessageView: View {
         HStack(spacing: 6) {
             Image(systemName: "heart.fill")
                 .font(.system(size: 9))
-            Text("GENTLE MODE")
+            Text("receive.gentle_mode")
                 .font(LumiTheme.label(9))
                 .kerning(1.2)
         }
@@ -198,6 +198,9 @@ struct SwipeCard: View {
 
     private var cardBody: some View {
         VStack(spacing: 0) {
+            if message.isPairMessage || message.isFromPair {
+                pairBadge
+            }
             moodBadge
             messageBody
             dividerLine
@@ -261,6 +264,43 @@ struct SwipeCard: View {
             .shadow(color: Color(red: 0.475, green: 0.314, blue: 0.239).opacity(0.06), radius: 30, x: 0, y: 40)
     }
 
+    private var pairBadge: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 8))
+                .foregroundStyle(LumiTheme.sparklePink)
+            if !message.senderName.isEmpty {
+                Text(message.senderName)
+                    .font(.custom("PlusJakartaSans-Regular", size: 10))
+                    .fontWeight(.bold)
+                    .foregroundStyle(LumiTheme.sparklePink)
+                    .kerning(message.senderName.hasPrefix("LUMI-") ? 1.5 : 0.5)
+            }
+            Group {
+                if message.isPairMessage {
+                    Text("receive.from_pair")
+                } else {
+                    Text("PAIRED SOUL")
+                }
+            }
+            .font(.custom("PlusJakartaSans-Regular", size: 9))
+            .fontWeight(.semibold)
+            .foregroundStyle(LumiTheme.sparklePink.opacity(0.7))
+            .kerning(1.5)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .background(
+            Capsule(style: .continuous)
+                .fill(LumiTheme.sparklePink.opacity(0.12))
+        )
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(LumiTheme.sparklePink.opacity(0.25), lineWidth: 1)
+        )
+        .padding(.bottom, 12)
+    }
+
     private var moodBadge: some View {
         Text(message.mood.uppercased())
             .font(.custom("PlusJakartaSans-Regular", size: 10)).fontWeight(.semibold)
@@ -295,7 +335,7 @@ struct SwipeCard: View {
                         .frame(width: 47, height: 51)
                         .background(isSaved ? RoundedRectangle(cornerRadius: 14, style: .continuous).fill(LumiTheme.secondary.opacity(0.15)) : nil)
                         .scaleEffect(isSaved ? 1.05 : 1.0)
-                    Text(isSaved ? "SAVED" : "SAVE")
+                    Text(isSaved ? "receive.action.saved" : "receive.action.save")
                         .font(.custom("PlusJakartaSans-Regular", size: 9))
                         .foregroundStyle(isSaved ? LumiTheme.secondary : Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4))
                         .kerning(0.9)
@@ -304,14 +344,14 @@ struct SwipeCard: View {
             Button(action: onShare) {
                 VStack(spacing: 12) {
                     Image("icon-share-glass").resizable().aspectRatio(contentMode: .fit).frame(width: 51, height: 49)
-                    Text("SHARE").font(.custom("PlusJakartaSans-Regular", size: 9))
+                    Text("receive.action.share").font(.custom("PlusJakartaSans-Regular", size: 9))
                         .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).kerning(0.9)
                 }
             }
             Button(action: onReport) {
                 VStack(spacing: 12) {
                     Image("icon-report-glass").resizable().aspectRatio(contentMode: .fit).frame(width: 48, height: 50)
-                    Text("REPORT").font(.custom("PlusJakartaSans-Regular", size: 9))
+                    Text("receive.action.report").font(.custom("PlusJakartaSans-Regular", size: 9))
                         .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).kerning(0.9)
                 }
             }
@@ -340,7 +380,7 @@ struct SwipeOnboarding: View {
                 Spacer()
 
                 // Title
-                Text("Swipe to Feel")
+                Text("receive.onboarding.title")
                     .font(LumiTheme.notoSerifDisplayLight(size: 36))
                     .foregroundStyle(.white)
                     .opacity(phase >= 1 ? 1 : 0)
@@ -361,7 +401,7 @@ struct SwipeOnboarding: View {
                                 .offset(x: -arrowOffset)
                         }
 
-                        Text("NOT FOR ME")
+                        Text("receive.onboarding.left")
                             .font(.custom("PlusJakartaSans-Regular", size: 10))
                             .fontWeight(.medium)
                             .foregroundStyle(.white.opacity(0.5))
@@ -394,7 +434,7 @@ struct SwipeOnboarding: View {
                                 .offset(x: arrowOffset)
                         }
 
-                        Text("LOVE THIS")
+                        Text("receive.onboarding.right")
                             .font(.custom("PlusJakartaSans-Regular", size: 10))
                             .fontWeight(.medium)
                             .foregroundStyle(.white.opacity(0.5))
@@ -408,7 +448,7 @@ struct SwipeOnboarding: View {
                 .padding(.bottom, 40)
 
                 // Description
-                Text("Swipe messages to share your energy.\nYour feedback shapes the\nsanctuary for everyone.")
+                Text("receive.onboarding.description")
                     .font(.custom("PlusJakartaSans-Regular", size: 13))
                     .foregroundStyle(.white.opacity(0.4))
                     .multilineTextAlignment(.center)
@@ -420,7 +460,7 @@ struct SwipeOnboarding: View {
                 // Button
                 if phase >= 4 {
                     Button(action: onDismiss) {
-                        Text("BEGIN")
+                        Text("receive.onboarding.begin")
                             .font(.custom("PlusJakartaSans-Regular", size: 13))
                             .fontWeight(.semibold)
                             .foregroundStyle(.white)

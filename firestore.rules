@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ===== MESSAGES =====
-    // Authenticated users can create messages
+    // Authenticated users can create messages (optionally targeting a pair)
     // Only Cloud Functions can update status (approve/reject/shadowban)
     match /messages/{messageId} {
       allow create: if request.auth != null
@@ -13,9 +13,13 @@ service cloud.firestore {
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 200
-        && request.resource.data.status == 'pending';
+        && request.resource.data.status == 'pending'
+        && (!request.resource.data.keys().hasAny(['targetUserId'])
+            || request.resource.data.targetUserId is string);
       allow read: if request.auth != null
-        && resource.data.status == 'approved';
+        && (resource.data.status == 'approved'
+            || (resource.data.targetUserId == request.auth.uid
+                && resource.data.status == 'approved'));
       allow update, delete: if false;
     }
 
@@ -32,12 +36,26 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ===== PAIR REQUESTS =====
+    // Users can read pair requests they sent or received
+    // Only Cloud Functions can create/update/delete
+    match /pair_requests/{requestId} {
+      allow read: if request.auth != null
+        && (resource.data.fromUserId == request.auth.uid
+            || resource.data.toUserId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
     // ===== CONNECTIONS =====
     // Users can read connections they are part of
+    // Users can update ONLY the nicknames field (Cloud Functions handle everything else)
     match /connections/{connectionId} {
       allow read: if request.auth != null
         && request.auth.uid in resource.data.users;
-      allow create, update, delete: if false;
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.users
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nicknames']);
+      allow create, delete: if false;
     }
 
     // ===== VAULTS (saved messages) =====

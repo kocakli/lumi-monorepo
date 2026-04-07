@@ -23,6 +23,9 @@ final class NotificationService: ObservableObject {
 
     @Published var showPrePermission = false
 
+    // Holds the FCM token if Auth wasn't ready when it arrived
+    private var pendingFCMToken: String?
+
     private init() {}
 
     var enabledMoods: [String] {
@@ -53,12 +56,35 @@ final class NotificationService: ObservableObject {
     // MARK: - FCM Token
 
     func saveFCMToken(_ token: String) async {
-        guard let uid = AuthService.shared.uid else { return }
+        // Buffer the token in case Auth isn't ready yet
+        pendingFCMToken = token
+
+        guard let uid = AuthService.shared.uid else {
+            // Auth not ready — token will be flushed via flushPendingToken() once auth completes
+            return
+        }
+        await writeToken(token, uid: uid)
+    }
+
+    /// Called by AuthService once anonymous sign-in completes
+    func flushPendingToken() async {
+        guard let token = pendingFCMToken,
+              let uid = AuthService.shared.uid else { return }
+        await writeToken(token, uid: uid)
+    }
+
+    private func writeToken(_ token: String, uid: String) async {
         let db = Firestore.firestore()
-        try? await db.collection("users").document(uid).setData([
-            "fcmToken": token,
-            "notificationPrefs": prefsDict,
-        ], merge: true)
+        do {
+            try await db.collection("users").document(uid).setData([
+                "fcmToken": token,
+                "language": currentLanguageCode,
+                "notificationPrefs": prefsDict,
+            ], merge: true)
+            pendingFCMToken = nil
+        } catch {
+            print("Failed to save FCM token: \(error)")
+        }
     }
 
     // MARK: - Sync Preferences
@@ -67,8 +93,14 @@ final class NotificationService: ObservableObject {
         guard let uid = AuthService.shared.uid else { return }
         let db = Firestore.firestore()
         try? await db.collection("users").document(uid).setData([
+            "language": currentLanguageCode,
             "notificationPrefs": prefsDict,
         ], merge: true)
+    }
+
+    /// Best-effort BCP-47 language code (e.g., "en", "ja", "zh", "tr")
+    private var currentLanguageCode: String {
+        Locale.current.language.languageCode?.identifier ?? "en"
     }
 
     private var prefsDict: [String: Any] {
@@ -78,6 +110,7 @@ final class NotificationService: ObservableObject {
             "periodHours": enabledPeriodHours,
             "moods": enabledMoods,
             "timezone": TimeZone.current.identifier,
+            "language": currentLanguageCode,
         ]
     }
 

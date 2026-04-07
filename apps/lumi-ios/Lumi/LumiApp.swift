@@ -10,7 +10,17 @@ struct LumiApp: App {
     @StateObject private var router = AppRouter()
     @StateObject private var sensitiveDays = SensitiveDaysService.shared
     @StateObject private var notificationService = NotificationService.shared
+    @StateObject private var pairingVM = PairingViewModel()
     @State private var showSplash = true
+
+    init() {
+        // Defensive: ensure Firebase is configured before any @StateObject lazy-inits
+        // touch Firebase singletons. AppDelegate.didFinishLaunching also calls configure(),
+        // but App.init() runs before SwiftUI initializes @StateObjects.
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -25,6 +35,8 @@ struct LumiApp: App {
                         SettingsView()
                     case .vault:
                         VaultView()
+                    case .pairs:
+                        PairsListView()
                     }
                 }
                 .environmentObject(authService)
@@ -55,9 +67,47 @@ struct LumiApp: App {
                             .zIndex(3)
                     }
                 }
+                .overlay(alignment: .top) {
+                    if let pairMsg = pairingVM.inAppPairMessage {
+                        PairMessageBanner(
+                            message: pairMsg,
+                            onView: {
+                                pairingVM.dismissPairMessage()
+                                router.navigate(to: .receive)
+                            },
+                            onDismiss: { pairingVM.dismissPairMessage() }
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.spring(response: 0.4), value: pairingVM.inAppPairMessage != nil)
+                        .zIndex(4)
+                    }
+                }
+                .overlay(alignment: .top) {
+                    if let request = pairingVM.inAppRequest {
+                        PairRequestBanner(
+                            code: request.fromUserCode,
+                            onAccept: { Task { await pairingVM.acceptRequest(request.id) } },
+                            onDecline: { Task { await pairingVM.rejectRequest(request.id) } },
+                            onDismiss: { pairingVM.dismissInAppRequest() }
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(4)
+                    }
+                }
+                .overlay {
+                    if pairingVM.pairingSuccess {
+                        PairingSuccessAnimation(isPresented: $pairingVM.pairingSuccess)
+                            .zIndex(5)
+                    }
+                }
                 .opacity(showSplash ? 0 : 1)
                 .onAppear {
                     notificationService.incrementAppOpenCount()
+                    pairingVM.startListening()
+                    // Show notification permission prompt early so FCM token gets registered
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        notificationService.checkShouldShowPrePermission()
+                    }
                 }
 
                 if showSplash {
@@ -98,7 +148,7 @@ struct LumiApp: App {
 // MARK: - App Router
 
 enum AppScreen {
-    case home, write, receive, settings, vault
+    case home, write, receive, settings, vault, pairs
 }
 
 @MainActor

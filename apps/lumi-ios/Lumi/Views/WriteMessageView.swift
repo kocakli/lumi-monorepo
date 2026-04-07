@@ -6,6 +6,8 @@ struct WriteMessageView: View {
     @StateObject private var viewModel = WriteMessageViewModel()
     @State private var messageText: String = ""
     @State private var selectedMood: String = "Random"
+    @State private var selectedPair: PairedUser? = nil
+    @State private var pairs: [PairedUser] = []
     @FocusState private var isTextFocused: Bool
 
     private let characterLimit = 400
@@ -27,6 +29,7 @@ struct WriteMessageView: View {
         }
         .background(LumiTheme.background)
         .onTapGesture { isTextFocused = false }
+        .task { pairs = (try? await CloudFunctionService.shared.getMyPairs()) ?? [] }
     }
 
     // MARK: - Modal Header
@@ -45,11 +48,52 @@ struct WriteMessageView: View {
 
             Spacer()
 
+            if !pairs.isEmpty {
+                recipientPill
+            }
+
             moodPill
         }
         .padding(.horizontal, 32)
         .padding(.top, 32)
         .padding(.bottom, 16)
+    }
+
+    private var recipientPill: some View {
+        Menu {
+            Button("Everyone") { selectedPair = nil }
+            ForEach(pairs) { pair in
+                Button(pair.nickname ?? "Unnamed Soul") { selectedPair = pair }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: selectedPair != nil ? "heart.fill" : "globe")
+                    .font(.system(size: 9))
+                    .foregroundStyle(selectedPair != nil ? LumiTheme.sparklePink : LumiTheme.primary)
+
+                Group {
+                    if selectedPair != nil {
+                        Text((selectedPair?.nickname ?? "PAIR").uppercased())
+                    } else {
+                        Text("write.recipient.everyone")
+                    }
+                }
+                .font(.custom("Plus Jakarta Sans", size: 10))
+                .fontWeight(.medium)
+                .foregroundStyle(LumiTheme.primary)
+                .kerning(1)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(selectedPair != nil ? LumiTheme.sparklePink.opacity(0.15) : Color.white.opacity(0.4))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(selectedPair != nil ? LumiTheme.sparklePink.opacity(0.3) : Color.white.opacity(0.6), lineWidth: 1)
+            )
+        }
     }
 
     private var moodPill: some View {
@@ -109,10 +153,10 @@ struct WriteMessageView: View {
 
     private var placeholderText: some View {
         VStack(spacing: 4) {
-            Text("Pour your silence")
+            Text("write.placeholder.line1")
                 .font(.custom("Noto Serif Display", size: 30))
                 .foregroundStyle(Color(red: 0.42, green: 0.45, blue: 0.50))
-            Text("into words...")
+            Text("write.placeholder.line2")
                 .font(.custom("Noto Serif Display", size: 30))
                 .foregroundStyle(Color(red: 0.42, green: 0.45, blue: 0.50))
         }
@@ -158,25 +202,34 @@ struct WriteMessageView: View {
     private var sendButton: some View {
         Button(action: {
             Task {
-                await viewModel.sendMessage(text: messageText, mood: selectedMood)
+                await viewModel.sendMessage(text: messageText, mood: selectedMood, targetUserId: selectedPair?.partnerUid)
                 if viewModel.didSend {
                     router.showMessageSent = true
                     withAnimation(.spring(response: 0.35)) { router.showWrite = false }
                 }
             }
         }) {
-            Text("SEND INTO THE LIGHT")
-                .font(.custom("Plus Jakarta Sans", size: 14))
-                .fontWeight(.semibold)
-                .foregroundStyle(
-                    Color(red: 0.459, green: 0.427, blue: 0.451)
-                        .opacity(canSend ? 1 : 0.5)
-                )
-                .kerning(4.2)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(sendButtonBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            Group {
+                if selectedPair != nil {
+                    Text(String(
+                        format: String(localized: "write.button.send_to_pair"),
+                        (selectedPair?.nickname ?? "YOUR PAIR").uppercased()
+                    ))
+                } else {
+                    Text("write.button.send")
+                }
+            }
+            .font(.custom("Plus Jakarta Sans", size: 14))
+            .fontWeight(.semibold)
+            .foregroundStyle(
+                Color(red: 0.459, green: 0.427, blue: 0.451)
+                    .opacity(canSend ? 1 : 0.5)
+            )
+            .kerning(4.2)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(sendButtonBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         }
         .disabled(!canSend)
     }

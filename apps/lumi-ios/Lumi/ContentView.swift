@@ -25,14 +25,14 @@ struct ContentView: View {
                 Spacer()
 
                 VStack(spacing: 16) {
-                    Text("Lumi")
+                    Text("common.lumi")
                         .font(LumiTheme.displayLarge(80))
                         .foregroundStyle(LumiTheme.onSurface.opacity(0.9))
                         .kerning(-4)
                         .frame(height: 120)
                         .transformEffect(CGAffineTransform(a: 1, b: 0, c: -0.18, d: 1, tx: 0, ty: 0))
 
-                    Text("DIGITAL SANCTUARY")
+                    Text("home.tagline")
                         .font(.custom("PlusJakartaSans-Regular", size: 10))
                         .foregroundStyle(LumiTheme.mutedText.opacity(0.6))
                         .kerning(4)
@@ -52,7 +52,7 @@ struct ContentView: View {
                                     .frame(width: 20, height: 20)
                                     .foregroundStyle(LumiTheme.sparklePink)
 
-                                Text("Receive a Message")
+                                Text("home.button.receive")
                                     .font(LumiTheme.bodyMedium(14))
                                     .fontWeight(.medium)
                                     .foregroundStyle(LumiTheme.buttonText)
@@ -72,7 +72,7 @@ struct ContentView: View {
                                     .frame(width: 19, height: 15)
                                     .foregroundStyle(LumiTheme.mutedText)
 
-                                Text("Say Something Nice")
+                                Text("home.button.send")
                                     .font(LumiTheme.bodyMedium(14))
                                     .fontWeight(.medium)
                                     .foregroundStyle(LumiTheme.mutedText)
