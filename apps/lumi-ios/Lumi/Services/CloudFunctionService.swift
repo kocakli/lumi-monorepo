@@ -233,4 +233,13 @@ final class CloudFunctionService {
         let dict = try await call("updatePairNickname", data: ["connectionId": connectionId, "nickname": nickname])
         return dict["success"] as? Bool ?? false
     }
+
+    // MARK: - Account Deactivation
+
+    /// Deletes all personal data and the auth user on the backend.
+    /// After this call the current ID token is invalid — caller must
+    /// sign out locally and re-authenticate to continue using the app.
+    func deleteAccount() async throws {
+        _ = try await call("deleteAccount")
+    }
 }

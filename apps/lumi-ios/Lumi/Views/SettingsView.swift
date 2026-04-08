@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var router: AppRouter
+    @EnvironmentObject var authService: AuthService
 
     @EnvironmentObject var notificationService: NotificationService
     @State private var stealthMode = false
@@ -10,6 +11,19 @@ struct SettingsView: View {
     @State private var showDatePicker = false
     @State private var dragOffset: CGFloat = 0
     @StateObject private var pairingVM = PairingViewModel()
+
+    @State private var showDeactivateConfirm = false
+    @State private var isDeactivating = false
+    @State private var deactivateError: String?
+
+    /// Version string built from the app bundle. Falls back to "—" if Info.plist
+    /// is missing the keys (should never happen in a real build).
+    private var appVersionString: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info?["CFBundleVersion"] as? String ?? "—"
+        return "Lumi Version \(short) (\(build)) \u{2014} Made with intention for mindful souls."
+    }
 
     var body: some View {
         NavigationStack {
@@ -720,21 +734,81 @@ struct SettingsView: View {
 
     private var dangerZone: some View {
         VStack(spacing: 24) {
-            Button(action: {}) {
-                Text("settings.deactivate")
-                    .font(.custom("PlusJakartaSans-Regular", size: 10))
-                    .tracking(3)
-                    .textCase(.uppercase)
-                    .foregroundStyle(Color(red: 0.729, green: 0.102, blue: 0.102))
+            Button(action: { showDeactivateConfirm = true }) {
+                HStack(spacing: 8) {
+                    if isDeactivating {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                            .tint(Color(red: 0.729, green: 0.102, blue: 0.102))
+                    }
+                    Text("settings.deactivate")
+                        .font(.custom("PlusJakartaSans-Regular", size: 10))
+                        .tracking(3)
+                        .textCase(.uppercase)
+                        .foregroundStyle(Color(red: 0.729, green: 0.102, blue: 0.102))
+                }
             }
+            .disabled(isDeactivating)
 
-            Text("Lumi Version 2.4.0 \u{2014} Made with intention for mindful souls.")
+            Text(appVersionString)
                 .font(.custom("PlusJakartaSans-Light", size: 10))
                 .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400).opacity(0.4))
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 48)
         .padding(.bottom, 96)
+        .confirmationDialog(
+            Text(verbatim: "Deactivate your account?"),
+            isPresented: $showDeactivateConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                Task { await performDeactivation() }
+            } label: {
+                Text(verbatim: "Deactivate")
+            }
+            Button("common.cancel", role: .cancel) { }
+        } message: {
+            Text(verbatim: "This will permanently erase your vault, pairs, notifications and personal data. Messages you sent to the community stay but are anonymized. This cannot be undone.")
+        }
+        .alert(
+            Text(verbatim: "Couldn’t deactivate"),
+            isPresented: Binding(
+                get: { deactivateError != nil },
+                set: { if !$0 { deactivateError = nil } }
+            )
+        ) {
+            Button(role: .cancel) { deactivateError = nil } label: {
+                Text(verbatim: "OK")
+            }
+        } message: {
+            Text(deactivateError ?? "")
+        }
+    }
+
+    @MainActor
+    private func performDeactivation() async {
+        isDeactivating = true
+        defer { isDeactivating = false }
+
+        do {
+            try await CloudFunctionService.shared.deleteAccount()
+        } catch {
+            deactivateError = error.localizedDescription
+            return
+        }
+
+        // Clear any local per-user state that would otherwise carry over to
+        // the new anonymous user spun up below.
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "hasReceivedFirstMessage")
+        defaults.removeObject(forKey: "hasSeenSwipeOnboarding")
+        defaults.removeObject(forKey: "pair_msgs_seen_v1")
+
+        // Backend has deleted the auth user. Spin up a fresh anonymous
+        // session and land the user back on home.
+        await authService.resetToFreshAnonymousUser()
+        router.goHome()
     }
 }
 

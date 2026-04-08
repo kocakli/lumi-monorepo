@@ -45,4 +45,19 @@ final class AuthService: ObservableObject {
             "language": lang,
         ], merge: true)
     }
+
+    /// Signs out the current Firebase user and re-creates a fresh anonymous
+    /// session. Used after account deactivation — the backend has already
+    /// deleted the previous auth user, so the old ID token is invalid.
+    func resetToFreshAnonymousUser() async {
+        // Clear published state so observers show the "not ready" gate.
+        isReady = false
+        uid = nil
+
+        // Tear down the existing session. On a deleted user Firebase may
+        // surface an error here; either outcome leaves us ready to re-auth.
+        try? Auth.auth().signOut()
+
+        await signInAnonymously()
+    }
 }

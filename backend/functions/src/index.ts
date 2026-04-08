@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
@@ -2063,5 +2064,137 @@ export const cleanupPendingMessages = onSchedule(
     await batch.commit();
 
     console.log(`Cleaned up ${staleMessages.size} stale pending messages`);
+  }
+);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 13. Delete / Deactivate Account
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Permanently removes all personal data tied to the signed-in user and
+// deletes their Firebase Auth record. Community messages are anonymized
+// (senderId → "deleted") rather than removed, so the shared message pool
+// is not affected.
+//
+// Cleanup scope:
+//   • users/{uid}                         — deleted
+//   • users/{uid}/vault/*                 — deleted
+//   • notifications (userId == uid)       — deleted
+//   • ratings (userId == uid)             — deleted
+//   • reports (reporterId == uid)         — deleted
+//   • support_tickets (userId == uid)     — deleted
+//   • pair_requests (fromUserId/toUserId) — deleted
+//   • connections containing uid          — deleted (partner loses pair)
+//   • pair_messages (senderId/targetId)   — deleted
+//   • messages (senderId == uid)          — anonymized (senderId = "deleted")
+//   • Firebase Auth user                  — deleted
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const deleteAccount = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+
+    // Helper: delete every doc in a query in chunks of 400 (batch limit 500).
+    async function deleteByQuery(
+      query: FirebaseFirestore.Query
+    ): Promise<number> {
+      let deleted = 0;
+      while (true) {
+        const snap = await query.limit(400).get();
+        if (snap.empty) break;
+        const batch = db.batch();
+        snap.docs.forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+        deleted += snap.size;
+        if (snap.size < 400) break;
+      }
+      return deleted;
+    }
+
+    // 1. Vault subcollection
+    await deleteByQuery(db.collection("users").doc(uid).collection("vault"));
+
+    // 2. Notifications
+    await deleteByQuery(
+      db.collection("notifications").where("userId", "==", uid)
+    );
+
+    // 3. Ratings
+    await deleteByQuery(db.collection("ratings").where("userId", "==", uid));
+
+    // 4. Reports filed by this user
+    await deleteByQuery(
+      db.collection("reports").where("reporterId", "==", uid)
+    );
+
+    // 5. Support tickets
+    await deleteByQuery(
+      db.collection("support_tickets").where("userId", "==", uid)
+    );
+
+    // 6. Pair requests (both directions)
+    await deleteByQuery(
+      db.collection("pair_requests").where("fromUserId", "==", uid)
+    );
+    await deleteByQuery(
+      db.collection("pair_requests").where("toUserId", "==", uid)
+    );
+
+    // 7. Pair messages (both directions)
+    await deleteByQuery(
+      db.collection("pair_messages").where("senderId", "==", uid)
+    );
+    await deleteByQuery(
+      db.collection("pair_messages").where("targetUserId", "==", uid)
+    );
+
+    // 8. Connections (dissolve pairs where this user participates)
+    const myConnections = await db
+      .collection("connections")
+      .where("users", "array-contains", uid)
+      .get();
+    if (!myConnections.empty) {
+      const batch = db.batch();
+      myConnections.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+
+    // 9. Anonymize messages this user sent — keep community content,
+    //    strip the identifier so nothing traces back.
+    const myMessages = await db
+      .collection("messages")
+      .where("senderId", "==", uid)
+      .get();
+    if (!myMessages.empty) {
+      // Chunk updates to stay under batch limit
+      const docs = myMessages.docs;
+      for (let i = 0; i < docs.length; i += 400) {
+        const batch = db.batch();
+        docs.slice(i, i + 400).forEach((d) => {
+          batch.update(d.ref, { senderId: "deleted" });
+        });
+        await batch.commit();
+      }
+    }
+
+    // 10. User doc itself
+    await db.collection("users").doc(uid).delete();
+
+    // 11. Delete the Firebase Auth user. This invalidates the ID token; any
+    //     further calls will 401. On the client, sign out and re-auth
+    //     anonymously to get a fresh uid.
+    try {
+      await getAuth().deleteUser(uid);
+    } catch (err) {
+      // If the auth user was already gone, treat as success.
+      console.warn(`deleteAccount: auth deleteUser failed for ${uid}:`, err);
+    }
+
+    return { success: true };
   }
 );

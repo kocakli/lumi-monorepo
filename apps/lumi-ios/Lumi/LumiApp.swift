@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+import AVFoundation
 import FirebaseCore
 
 @main
@@ -19,6 +20,15 @@ struct LumiApp: App {
         // but App.init() runs before SwiftUI initializes @StateObjects.
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
+        }
+
+        // Use ambient audio session so the splash video (and any future audio)
+        // does NOT interrupt music playing in other apps.
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to set ambient audio session: \(error)")
         }
     }
 
