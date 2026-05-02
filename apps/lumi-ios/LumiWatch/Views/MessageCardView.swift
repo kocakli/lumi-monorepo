@@ -36,7 +36,8 @@ struct MessageCardView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .containerBackground(WatchTheme.backgroundGradient, for: .tabView)
+        // Background is provided by `MessageDeckView` (single-card layout
+        // — no TabView container to attach `.containerBackground` to).
         .gesture(horizontalSwipeGesture)
     }
 
@@ -68,11 +69,10 @@ struct MessageCardView: View {
                 Image(systemName: isFavorited ? "heart.fill" : "heart")
                     .font(.system(size: 14, weight: .light))
                     .foregroundStyle(isFavorited ? WatchTheme.brand : WatchTheme.brand.opacity(0.45))
-                    .frame(width: 28, height: 28)
+                    .frame(width: 32, height: 32)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(!message.isActionable)
 
             Spacer()
 
@@ -89,7 +89,7 @@ struct MessageCardView: View {
             Spacer()
 
             // Symmetry spacer to keep "Lumi" optically centered.
-            Color.clear.frame(width: 28, height: 28)
+            Color.clear.frame(width: 32, height: 32)
         }
         .padding(.horizontal, 6)
         .padding(.bottom, 4)
@@ -111,20 +111,15 @@ struct MessageCardView: View {
     // MARK: - Horizontal swipe gesture (does not intercept vertical)
 
     private var horizontalSwipeGesture: some Gesture {
-        DragGesture(minimumDistance: 18)
+        DragGesture(minimumDistance: 30)
             .onChanged { value in
-                // Only respond to predominantly horizontal motion. Vertical
-                // drags go to TabView for paging.
-                guard message.isActionable else { return }
+                // Direction filter: only follow predominantly horizontal
+                // motion. Vertical drags pass through to TabView paging.
                 if abs(value.translation.width) > abs(value.translation.height) * 1.2 {
                     dragOffset = value.translation.width
                 }
             }
             .onEnded { value in
-                guard message.isActionable else {
-                    withAnimation(.spring(response: 0.3)) { dragOffset = 0 }
-                    return
-                }
                 let dx = value.translation.width
                 let dy = value.translation.height
                 let isMostlyHorizontal = abs(dx) > abs(dy) * 1.2
@@ -140,17 +135,17 @@ struct MessageCardView: View {
     }
 
     private func triggerSwipe(_ feedback: SwipeFeedback, exitOffset: CGFloat, callback: @escaping () -> Void) {
+        // Animate the card off-screen first, then call back to the parent
+        // so the deck can advance after the exit animation completes.
         withAnimation(.easeOut(duration: 0.22)) {
             dragOffset = exitOffset
             swipeFeedback = feedback
         }
-        callback()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
-            withAnimation(.easeIn(duration: 0.18)) {
-                swipeFeedback = nil
-            }
-            // Reset position without animation for the next card to enter clean
-            dragOffset = 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+            callback()
+            // After this fires the parent typically swaps in a new
+            // MessageCardView (via `.id(currentIndex)`); local state reset
+            // is handled implicitly by the new view instance.
         }
     }
 }

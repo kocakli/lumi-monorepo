@@ -7,13 +7,8 @@ struct WelcomeView: View {
     let onContinue: () -> Void
 
     var body: some View {
-        ZStack {
-            // Explicit cream gradient as the floor — `.containerBackground`
-            // alone isn't reliable here on watchOS (renders dark on dark).
-            WatchTheme.backgroundGradient
-                .ignoresSafeArea()
-
-            ScrollView {
+        // Background is provided by the parent `MessageDeckView`.
+        ScrollView {
                 VStack(spacing: 12) {
                     Spacer(minLength: 8)
 
@@ -28,26 +23,21 @@ struct WelcomeView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 4)
 
-                    VStack(alignment: .leading, spacing: 10) {
-                        gestureRow(
-                            symbol: "arrow.up.and.down",
-                            title: "Swipe up or down",
-                            subtitle: "to read the next letter"
-                        )
+                    VStack(alignment: .leading, spacing: 12) {
                         gestureRow(
                             symbol: "heart",
                             title: "Swipe right",
-                            subtitle: "to send a heart"
+                            subtitle: "to send a heart and read the next letter"
                         )
                         gestureRow(
                             symbol: "xmark",
                             title: "Swipe left",
-                            subtitle: "to pass quietly"
+                            subtitle: "to pass quietly to the next letter"
                         )
                         gestureRow(
                             symbol: "bookmark",
                             title: "Tap the heart",
-                            subtitle: "to keep a letter forever"
+                            subtitle: "to keep this letter in your Vault"
                         )
                     }
                     .padding(.top, 6)
@@ -67,7 +57,6 @@ struct WelcomeView: View {
                     Spacer(minLength: 4)
                 }
                 .padding(.horizontal, 8)
-            }
         }
     }
 
