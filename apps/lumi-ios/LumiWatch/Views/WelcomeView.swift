@@ -1,75 +1,92 @@
 import SwiftUI
 
-/// First-launch onboarding for the Watch app. Explains the two ways to
-/// move between letters (swipe + Digital Crown) and dismisses on tap.
-/// Shown only once per install — gated by `@AppStorage("lumi.watch.hasSeenWelcome")`.
+/// First-launch onboarding for the Watch app. Explains the gestures and
+/// dismisses on tap. Shown only once per install — gated by
+/// `@AppStorage("lumi.watch.hasSeenWelcome")` in MessageDeckView.
 struct WelcomeView: View {
     let onContinue: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                Spacer(minLength: 4)
+        ZStack {
+            // Explicit cream gradient as the floor — `.containerBackground`
+            // alone isn't reliable here on watchOS (renders dark on dark).
+            WatchTheme.backgroundGradient
+                .ignoresSafeArea()
 
-                Text("Welcome to Lumi")
-                    .font(WatchTheme.displayFont(size: 22))
-                    .foregroundStyle(WatchTheme.ink)
-                    .multilineTextAlignment(.center)
+            ScrollView {
+                VStack(spacing: 12) {
+                    Spacer(minLength: 8)
 
-                Text("A small place for kind letters from strangers.")
-                    .font(WatchTheme.bodyFont(size: 12))
-                    .foregroundStyle(WatchTheme.ink.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 4)
+                    Text("Welcome to Lumi")
+                        .font(WatchTheme.displayFont(size: 22))
+                        .foregroundStyle(WatchTheme.ink)
+                        .multilineTextAlignment(.center)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "arrow.left.and.right")
-                            .foregroundStyle(WatchTheme.brand)
-                            .font(.system(size: 14, weight: .light))
-                            .frame(width: 18)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Swipe")
-                                .font(WatchTheme.bodyFont(size: 13))
-                                .foregroundStyle(WatchTheme.ink)
-                            Text("left or right between letters")
-                                .font(WatchTheme.bodyFont(size: 11))
-                                .foregroundStyle(WatchTheme.ink.opacity(0.65))
-                        }
+                    Text("Letters from strangers, found by you.")
+                        .font(WatchTheme.bodyFont(size: 12))
+                        .foregroundStyle(WatchTheme.ink.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 4)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        gestureRow(
+                            symbol: "arrow.up.and.down",
+                            title: "Swipe up or down",
+                            subtitle: "to read the next letter"
+                        )
+                        gestureRow(
+                            symbol: "heart",
+                            title: "Swipe right",
+                            subtitle: "to send a heart"
+                        )
+                        gestureRow(
+                            symbol: "xmark",
+                            title: "Swipe left",
+                            subtitle: "to pass quietly"
+                        )
+                        gestureRow(
+                            symbol: "bookmark",
+                            title: "Tap the heart",
+                            subtitle: "to keep a letter forever"
+                        )
                     }
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "dial.medium")
-                            .foregroundStyle(WatchTheme.brand)
-                            .font(.system(size: 14, weight: .light))
-                            .frame(width: 18)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Turn the crown")
-                                .font(WatchTheme.bodyFont(size: 13))
-                                .foregroundStyle(WatchTheme.ink)
-                            Text("for a quieter, slower scroll")
-                                .font(WatchTheme.bodyFont(size: 11))
-                                .foregroundStyle(WatchTheme.ink.opacity(0.65))
-                        }
+                    .padding(.top, 6)
+                    .padding(.horizontal, 6)
+
+                    Button(action: onContinue) {
+                        Text("Begin")
+                            .font(WatchTheme.bodyFont(size: 14))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 4)
                     }
-                }
-                .padding(.top, 4)
-                .padding(.horizontal, 6)
+                    .buttonStyle(.borderedProminent)
+                    .tint(WatchTheme.brand)
+                    .padding(.top, 8)
+                    .padding(.horizontal, 6)
 
-                Button(action: onContinue) {
-                    Text("Begin")
-                        .font(WatchTheme.bodyFont(size: 14))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
+                    Spacer(minLength: 4)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(WatchTheme.brand)
-                .padding(.top, 6)
-
-                Spacer(minLength: 4)
+                .padding(.horizontal, 8)
             }
-            .padding(.horizontal, 8)
         }
-        .containerBackground(WatchTheme.backgroundGradient, for: .navigation)
+    }
+
+    private func gestureRow(symbol: String, title: String, subtitle: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: symbol)
+                .foregroundStyle(WatchTheme.brand)
+                .font(.system(size: 14, weight: .light))
+                .frame(width: 18, alignment: .center)
+                .padding(.top, 1)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(WatchTheme.bodyFont(size: 12))
+                    .foregroundStyle(WatchTheme.ink)
+                Text(subtitle)
+                    .font(WatchTheme.bodyFont(size: 10))
+                    .foregroundStyle(WatchTheme.ink.opacity(0.6))
+            }
+        }
     }
 }
 

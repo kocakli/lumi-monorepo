@@ -8,7 +8,7 @@ import SwiftUI
 /// is a separate target — duplicate the small reader here.
 private enum WatchCache {
     static let suiteName = "group.com.tease.lumi.watch"
-    static let messagesKey = "lumi.watch.messages"
+    static let messagesKey = "lumi.watch.messages.json"
 
     static let fallback: [String] = [
         "Even the smallest star shines in the darkest night.",
@@ -21,10 +21,21 @@ private enum WatchCache {
         "You are becoming, quietly and beautifully.",
     ]
 
+    /// Mirrors `WatchMessage` from the watch app target. Decoded from
+    /// the shared JSON blob — only the `text` is needed for display.
+    private struct StoredMessage: Decodable {
+        let id: String
+        let text: String
+        let mood: String
+    }
+
     static func loadMessages() -> [String] {
-        let stored = UserDefaults(suiteName: suiteName)?
-            .stringArray(forKey: messagesKey) ?? []
-        return stored.isEmpty ? fallback : stored
+        guard let data = UserDefaults(suiteName: suiteName)?.data(forKey: messagesKey),
+              let stored = try? JSONDecoder().decode([StoredMessage].self, from: data),
+              !stored.isEmpty else {
+            return fallback
+        }
+        return stored.map(\.text)
     }
 }
 

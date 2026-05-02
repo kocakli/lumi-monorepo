@@ -2,14 +2,13 @@ import Foundation
 
 /// Curated evergreen messages shown when the Watch hasn't received any
 /// real feed yet (cold launch, fresh install, or WCSession activation
-/// hasn't completed). Keep tight and brand-voice on — these are literally
-/// the first thing some users see on the Watch.
+/// hasn't completed).
 ///
-/// Mirrors `LumiWidget.SharedData.fallbackMessages` for consistency, but
-/// is intentionally a separate constant so the Watch can drift slightly
-/// (shorter, more breath-aware lines for a smaller canvas).
+/// IDs are prefixed `fallback-` so `WatchMessage.isActionable` returns
+/// false — gestures and the heart button are visually disabled because
+/// these aren't real backend messages and can't be rated or saved.
 enum WatchFallback {
-    static let messages: [String] = [
+    static let messages: [WatchMessage] = [
         "Even the smallest star shines in the darkest night.",
         "You are doing better than you think.",
         "Breathe in calm. Breathe out worry.",
@@ -20,5 +19,7 @@ enum WatchFallback {
         "The next step does not need to be big. It only needs to be yours.",
         "Be soft with yourself today.",
         "You are becoming, quietly and beautifully.",
-    ]
+    ].enumerated().map { index, text in
+        WatchMessage(id: "fallback-\(index)", text: text, mood: "Peaceful")
+    }
 }
