@@ -73,6 +73,7 @@ struct ReceiveMessageView: View {
         }
         .task { await viewModel.loadFeed() }
         .onAppear {
+            if ScreenshotMode.isEnabled { return }
             if !hasSeenOnboarding {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                     withAnimation { showOnboarding = true }

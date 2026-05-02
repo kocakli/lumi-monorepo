@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -14,13 +14,10 @@ Lumi is a positivity-focused messaging app. Users send and receive anonymous kin
 - `apps/lumi-ios/` — Native iOS app (SwiftUI, WidgetKit)
 - `backend/functions/` — Firebase Cloud Functions (TypeScript, ESM)
 - `docs/` — PRD, tech stack, project plan
-- `marketing/app-store-screenshots/` — App Store screenshot assets and GPT-generated per-language marketing imagery (iPhone + iPad, 10 locales)
-
-**Sibling doc**: [`AGENTS.md`](./AGENTS.md) is the Codex/Codex.ai equivalent of this file — same project context, separate audience. Keep meaningful project-architecture changes in sync between the two; both files exist and the team uses both tools.
 
 ## Backend (Firebase Cloud Functions)
 
-**Stack**: TypeScript (ESM), Node.js 22 (engines), Firebase Admin SDK v13 (modular imports), Gemini AI (`@google/genai`), firebase-functions v7. Runtime was bumped from Node 20 → 22 ahead of the 2026-04-30 Node 20 deprecation; if you change `engines.node`, the next deploy will migrate **all** functions to that runtime.
+**Stack**: TypeScript (ESM), Node.js 20, Firebase Admin SDK v13 (modular imports), Gemini AI (`@google/genai`), firebase-functions v7
 
 **All backend code lives in a single file**: `backend/functions/src/index.ts` (~2200 lines, no separate modules yet). Helpers live above the exported handlers; section ordering is moderation helpers → callable handlers → scheduled jobs.
 
@@ -152,9 +149,7 @@ Requires `xcodegen` installed (`brew install xcodegen`).
 
 **Localization**: App ships with 10 languages (see commit `b360e68e`). Localization files live under `Lumi/Resources/`.
 
-**Screenshot mode** (`Lumi/ScreenshotMode.swift`): DEBUG-only launch-argument hook used by the App Store screenshot pipeline. Launch flags: `-LumiScreenshotMode`, `-LumiScreen <home|receive|vault|settings|connection|share>`, `-LumiLanguage <locale>`. When enabled, the splash is bypassed and `LumiApp` swaps in a fixed screen with hard-coded localized sample data (across all 10 languages) instead of the live router-driven flow. Used for generating the assets in `marketing/app-store-screenshots/`. Production builds compile this out (`#if DEBUG`).
-
-**Current state**: Auth, Firestore, Functions, Messaging integrated via SPM. Pairing system, push notifications (with scheduled hourly job), account deactivation, and ambient audio all ship in build 13. Backend runs on Node 22 with 20 functions deployed in `europe-west1`. No tests. No linting or CI/CD configured.
+**Current state**: Auth, Firestore, Functions, Messaging integrated via SPM. Pairing system, push notifications (with scheduled hourly job), account deactivation, and ambient audio all ship in build 13. No tests. No linting or CI/CD configured.
 
 ## Firestore Security Rules
 

@@ -14,6 +14,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, MessagingDelegate, UNUserNot
         Messaging.messaging().delegate = self
         UNUserNotificationCenter.current().delegate = self
         application.registerForRemoteNotifications()
+        // Activate WatchConnectivity early so applicationContext writes from
+        // MessageFeedViewModel.loadFeed() are accepted instead of dropped.
+        WatchConnectivityService.shared.activate()
         return true
     }
 

@@ -12,7 +12,7 @@ struct LumiApp: App {
     @StateObject private var sensitiveDays = SensitiveDaysService.shared
     @StateObject private var notificationService = NotificationService.shared
     @StateObject private var pairingVM = PairingViewModel()
-    @State private var showSplash = true
+    @State private var showSplash = !ScreenshotMode.isEnabled
 
     init() {
         // Defensive: ensure Firebase is configured before any @StateObject lazy-inits
@@ -36,17 +36,25 @@ struct LumiApp: App {
         WindowGroup {
             ZStack {
                 Group {
-                    switch router.currentScreen {
-                    case .home, .write:
-                        ContentView()
-                    case .receive:
-                        ReceiveMessageView()
-                    case .settings:
-                        SettingsView()
-                    case .vault:
-                        VaultView()
-                    case .pairs:
-                        PairsListView()
+                    if ScreenshotMode.isEnabled && ScreenshotMode.screen == "connection" {
+                        NavigationStack {
+                            ConnectionCodeView()
+                        }
+                    } else if ScreenshotMode.isEnabled && ScreenshotMode.screen == "share" {
+                        ShareMessageView(message: ScreenshotMode.shareMessage, mood: ScreenshotMode.shareMood)
+                    } else {
+                        switch router.currentScreen {
+                        case .home, .write:
+                            ContentView()
+                        case .receive:
+                            ReceiveMessageView()
+                        case .settings:
+                            SettingsView()
+                        case .vault:
+                            VaultView()
+                        case .pairs:
+                            PairsListView()
+                        }
                     }
                 }
                 .environmentObject(authService)
@@ -112,6 +120,10 @@ struct LumiApp: App {
                 }
                 .opacity(showSplash ? 0 : 1)
                 .onAppear {
+                    if ScreenshotMode.isEnabled {
+                        ScreenshotMode.configure(router: router)
+                        return
+                    }
                     notificationService.incrementAppOpenCount()
                     pairingVM.startListening()
                     // Show notification permission prompt early so FCM token gets registered

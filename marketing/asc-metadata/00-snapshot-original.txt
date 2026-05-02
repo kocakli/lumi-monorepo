@@ -1,0 +1,517 @@
+# JWT minted, calling ASC API
+
+# App: Lumi - Letters in the Wind ID: 6761751576
+
+## ===== App Info Localizations (name / subtitle) =====
+
+### Locale: it
+Name:     "Lumi: Lettere al Vento"
+Subtitle: "Sussurri anonimi di luce"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: zh-Hans
+Name:     "Lumi - 风的来信"
+Subtitle: "匿名收发的善意话语"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: tr
+Name:     "Lumi: Rüzgardaki Mektuplar"
+Subtitle: "İsimsiz nezaket, her gün"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: ja
+Name:     "Lumi - 風の便り"
+Subtitle: "やさしい言葉が、そっと届く"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: de-DE
+Name:     "Lumi: Briefe im Wind"
+Subtitle: "Anonyme Worte der Güte"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: ko
+Name:     "Lumi: 바람의 편지"
+Subtitle: "이름 없는 따뜻한 한 마디"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: pt-BR
+Name:     "Lumi: Cartas ao Vento"
+Subtitle: "Carinho anônimo todos os dias"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: en-US
+Name:     "Lumi - Letters in the Wind"
+Subtitle: "Anonymous letters of kindness"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: fr-FR
+Name:     "Lumi: Lettres dans le Vent"
+Subtitle: "Mots doux, anonymes"
+Privacy URL: https://tease.tr/lumi/privacy
+
+### Locale: es-ES
+Name:     "Lumi: Cartas al Viento"
+Subtitle: "Susurros anónimos de luz"
+Privacy URL: https://tease.tr/lumi/privacy
+
+## ===== App Store Versions =====
+- v1.0 state: PREPARE_FOR_SUBMISSION
+
+# Inspecting version: 1.0
+
+## ===== App Store Version Localizations =====
+
+### Locale: tr
+--- description ---
+Tanımadığın birinin sana yazdığı bir cümle.
+Rüzgara bırakılmış, ismini bilmediğin nazik bir mektup.
+Okunmasını beklemeden yazılan, en saf iyilik.
+
+Lumi, isimsiz nazik mektupların paylaşıldığı küçük bir bahçedir. Takipçi yok. Beğeni yok. Profil yok. Sadece bugün birinin yazdığı bir cümle ve onu alan sen.
+
+Gelen söz yalnızca nezakettir. Lumi'nin sistemi sert sözleri sessizce süzer. Bu yüzden kapıyı güvenle açabilirsin.
+
+YAPABİLECEKLERİN
+
+- Bir cümle yaz ve gönder. İçindeki bir düşünceyi kelimelere dök ve rüzgara bırak. Bir yerlerde biri onu bulacak.
+- Bir mektup al. Uygulamayı her açtığında, tanımadığın birinin küçük ışığı avucuna düşer.
+- Sana dokunan sözleri sakla. Sandık, en sevdiğin sözleri sadece sana ait özel bir yerde tutar.
+- Sevdiğin biriyle eşleş. Bir arkadaşın, sevgilin ya da değer verdiğin biriyle gizli kodunu paylaş, sadece ikiniz arasında mektup alıp verin.
+- Hangi ruh halini istediğini seç. Şakacı, dingin, motive edici ya da romantik. Ya da rüzgara bırak.
+- Hassas Günler için Yumuşak Mod. Daha narin sözlere ihtiyacın olduğunda Lumi seni hatırlar.
+
+KİMLER İÇİN
+
+Bugün bir yabancının nazik bir şey söylemesini diledysen. Biraz uzun gelen geceler için. Küçük bir destekle başlamak isteyen sabahlar için. Sevdiklerinden birine sevildiğini hatırlatmak isteyen yürekler için.
+
+SESSİZ BİR TASARIM
+
+Lumi sessizlik için kuruldu. Yumuşak pembeler, sıcak krem rengi, serif yazı tipi. Dikkat çeken bildirimler yok. Kaydırılacak bir akış yok. Sadece sen kapıyı açtığında, bir tek cümle sessizce orada bekler.
+
+TASARIM GEREĞİ ÖZEL
+
+Hesap yok, profil yok, herkese açık kimlik yok. Eşleşme kodları anonim. Bildirimler titizlikle incelenir. Nezaketsiz sözler, başka birine ulaşmadan sessizce kaldırılır.
+
+Widget'lar, ana ekranına nazik bir cümle taşır. Bildirimler, izin verirsen, sadece paylaşılacak gerçekten yumuşak bir şey olduğunda gelir.
+
+Lumi, internetin sessiz bir köşesidir. Umarız, ihtiyacın olan bir günde seni bulur.
+--- keywords ---
+iyilik,motivasyon,anonim,huzur,mektup,söz,afirmasyon,rüzgar,nezaket,dilek,sığınak,şefkat,umut
+--- promotionalText ---
+Tanımadığın birinin bugün senin için yazdığı nazik bir cümle. Rüzgardaki mektuplar ve sevdiğin biriyle ikinizin sığınağı. Sessiz bir köşe.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: ko
+--- description ---
+낯선 누군가가 오늘 당신을 위해 쓴 한 줄.
+바람에 실려 조용히 도착하는, 이름 없는 다정한 편지.
+읽혀지기를 바라지 않고 쓰는, 가장 진실한 위로.
+
+Lumi(루미)는 익명의 따뜻한 편지를 주고받는 작은 정원 같은 앱입니다. 팔로워도, 좋아요도, 프로필도 없습니다. 오늘 누군가가 마음을 담아 적은 한 마디와, 그것을 받게 되는 당신만이 있을 뿐입니다.
+
+도착하는 말은 오직 다정함뿐. Lumi의 시스템이 거친 말은 조용히 걸러냅니다. 그래서 안심하고 문을 열 수 있어요.
+
+할 수 있는 일
+
+- 한 줄을 적어 보내기. 오늘의 마음을 글로 옮겨, 그저 바람에 흘려보냅니다. 어딘가에 있는 누군가가 받게 됩니다.
+- 한 줄을 받기. 앱을 열 때마다, 모르는 누군가의 작은 등불이 손바닥 안에 도착합니다.
+- 마음에 남은 말 간직하기. 오래 곁에 두고 싶은 한 마디는 나만의 보관함에 저장됩니다.
+- 소중한 사람과 둘만의 정원. 비밀 코드를 공유하면, 그 사람과만 단둘이 편지를 주고받을 수 있어요.
+- 기분을 선택하기. 다정함, 평온함, 응원, 그리움. 바람에 맡길 수도 있습니다.
+- 마음이 약한 날의 부드러운 모드. 더 부드러운 말이 필요한 날, Lumi는 기억합니다.
+
+어떤 사람을 위한 것인지
+
+오늘 누군가가 다정한 말을 건네 주었으면 하고 바란 적 있는 모든 분들께. 조금 길게 느껴지는 밤들을 위해. 작은 응원이 필요한 아침을 위해. 소중한 사람에게 너는 사랑받고 있다고 전하고 싶은 마음을 위해.
+
+조용한 디자인
+
+Lumi는 고요함을 위해 만들어졌습니다. 부드러운 분홍, 따뜻한 크림색, 명조체 글씨. 스크롤할 피드는 없습니다. 당신이 문을 열었을 때, 단 한 줄의 말이 조용히 그곳에 있습니다.
+
+프라이버시를 소중히
+
+계정도, 프로필도, 공개되는 신원도 없습니다. 페어 코드도 익명입니다. 신고된 말은 정성껏 확인합니다. 다정하지 않은 말은 다른 누군가에게 닿기 전에 조용히 사라집니다.
+
+위젯을 두면 홈 화면에 한 줄의 등불이 켜집니다. 알림은 정말로 따뜻한 말이 도착했을 때만, 그것도 당신이 허락했을 때만.
+
+Lumi는 인터넷의 한구석에 있는 작은 쉼터 같은 곳입니다. 당신이 필요로 하는 날에 조용히 곁에 있을 수 있기를.
+--- keywords ---
+위로,힐링,명언,익명,편지,마음,자존감,글귀,감성,따뜻한말,마음챙김,응원,다정,휴식,안식,따스함,격려,손편지
+--- promotionalText ---
+낯선 누군가가 오늘 당신을 위해 쓴 따뜻한 한 줄. 바람에 실려 조용히 도착하는 익명의 편지와, 소중한 사람과 둘만의 정원.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: fr-FR
+--- description ---
+Lumi est un sanctuaire silencieux pour les mots bienveillants.
+
+Écrivez une lettre anonyme et laissez-la s'envoler dans le vent. Recevez des paroles de douceur d'âmes inconnues, quelque part dans le monde. Une pause tendre dans le bruit du quotidien.
+
+UN JARDIN SECRET DE BIENVEILLANCE
+Lumi est différent. Pas de likes, pas d'abonnés, pas de course à l'attention. Seulement des mots sincères, filtrés par une intelligence douce, qui circulent entre des cœurs anonymes.
+
+CE QUE VOUS Y TROUVEREZ
+
+Écrire une lettre
+Offrez à un inconnu du courage, du réconfort, ou un sourire. Votre lettre passe par un filtre d'IA bienveillante, puis s'envole dans le souffle numérique.
+
+Recevoir des mots
+Des paroles d'inconnus arrivent chaque jour — des messages d'espoir, de calme, de présence. Glissez pour choisir votre humeur : enjoué, paisible, motivant ou romantique.
+
+Votre collection
+Gardez les mots qui vous touchent dans votre coffret personnel. Un petit jardin où revenir quand le silence vous appelle.
+
+Lien privé
+Avec le code de connexion, vous pouvez vous lier en secret à un être cher, sans révéler votre identité. Un pont discret entre deux mondes silencieux.
+
+Jours sensibles
+Un mode plus doux pour les jours où vous avez besoin d'une caresse particulière. Lumi sait que tous les jours ne se ressemblent pas.
+
+Widget pour l'écran de verrouillage
+Qu'un mot bienveillant soit votre premier compagnon du matin. Le widget Lumi dépose une douceur chaque heure sur votre écran.
+
+DESIGN
+Lumi puise dans l'esthétique japonaise — du verre, de la lumière, des couleurs tendres. C'est une application que l'on ouvre par envie, pas par habitude. Une présence qui apaise plutôt qu'elle n'intrigue.
+
+VIE PRIVÉE
+Pas de profil, pas d'identifiant publicitaire, pas de pub. Anonyme dès le premier instant. Vos mots restent les vôtres.
+
+Lumi n'est pas un réseau social. C'est une respiration.
+--- keywords ---
+bienveillance,meditation,anonyme,douceur,lumiere,paix,calme,ame,souffle,lettre,zen,refuge
+--- promotionalText ---
+Écrivez une lettre anonyme de douceur. Recevez des mots d'âmes inconnues. Un sanctuaire silencieux pour la bienveillance.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: pt-BR
+--- description ---
+Um refúgio para palavras gentis de quem você nunca conheceu.
+Escreva uma carta de carinho. Solte-a no vento.
+Receba uma palavra que alguém precisou ser gentil hoje.
+
+Lumi é um cantinho silencioso onde pessoas deixam cartas anônimas de gentileza umas para as outras. Sem nome de usuário. Sem seguidores. Sem curtidas. Apenas cartas ao vento, levadas por quem precisava escrever e encontradas por quem precisava ler.
+
+Cada mensagem é cuidadosamente revisada por uma inteligência que só deixa o carinho passar. Por isso o jardim continua sempre suave.
+
+O QUE VOCÊ PODE FAZER
+
+- Escrever uma palavra carinhosa. Coloque um pensamento em palavras e solte. Em algum lugar, alguém vai encontrá-la.
+- Receber uma carta. Abra o aplicativo e a pequena luz de um desconhecido chega na sua mão.
+- Guardar as que ficam com você. O Cofre mantém suas favoritas em um lugar privado só seu.
+- Pareie com alguém especial. Compartilhe um código secreto com um amigo, parceiro ou alguém amado e troquem cartas só entre vocês dois.
+- Escolha o humor. Brincalhão, sereno, motivador ou romântico. Ou deixe o vento decidir.
+- Modo Suave para os dias delicados. Quando você precisa de palavras mais gentis, Lumi se lembra.
+
+PARA QUEM É
+
+Para quem já desejou que um desconhecido dissesse algo carinhoso hoje. Para as noites que parecem um pouco longas. Para as manhãs que precisam de um pequeno empurrão. Para o amigo que sempre precisa de um lembrete de que é amado.
+
+UM DESIGN SILENCIOSO
+
+Lumi foi feito ao redor da quietude. Rosas suaves, creme aconchegante, tipografia serifada. Sem notificações gritando por atenção. Sem feed para rolar. Apenas uma carta de cada vez, quando você decidir abrir a porta.
+
+PRIVADO POR DESIGN
+
+Sem cadastro, sem perfil, sem identidade pública. Os códigos de pareamento são anônimos. Denúncias são levadas a sério. A grosseria é filtrada antes mesmo de chegar a outra pessoa.
+
+Widgets levam uma palavra carinhosa para a sua tela inicial. Notificações, se você permitir, chegam apenas quando há algo gentil para compartilhar.
+
+Lumi é um pequeno e calmo cantinho da internet. Que ele encontre você em um dia que precisava.
+--- keywords ---
+afirmação,gratidão,positiva,anônima,carta,autoestima,calma,esperança,acolher,abraço,carinho,luz
+--- promotionalText ---
+Um cantinho silencioso onde desconhecidos deixam palavras carinhosas uns para os outros. Cartas anônimas, filtradas para gentileza. Encontre uma hoje.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: en-US
+--- description ---
+Lumi is a quiet sanctuary where strangers send each other anonymous letters of kindness — like words drifting through the wind, finding the souls who needed them.
+
+In a world of noise, Lumi is your soft place. Open the app, receive a kind word from someone who'll never know you. Let yourself be moved. Then, when you're ready, send one back into the light. You'll never know who reads it. They'll never know it was you. But for one quiet moment, two strangers will be connected by something good.
+
+— ANONYMOUS BY DESIGN —
+No accounts. No profiles. No tracking. Just words and the people who needed them.
+
+— GENTLY MODERATED —
+Every message is filtered before it reaches you. Negativity, harassment, and spam never make it through. Lumi is a place for kindness only.
+
+— PAIR WITH SOMEONE SPECIAL —
+Share your private code with a friend or loved one. Once paired, you can send messages directly to them — a more intimate channel within the sanctuary. Give them a nickname. Build something quiet and beautiful.
+
+— YOUR VAULT —
+Save the messages that move you. Return to them whenever you need a little light.
+
+— GENTLE NOTIFICATIONS —
+Choose how often Lumi reaches out, and what kinds of messages you want — Playful, Peaceful, Motivating, or Romantic. On your terms, in your time.
+
+— ZEN GARDEN AESTHETIC —
+Designed in the spirit of Japanese minimalism. Soft glassmorphism, NotoSerif typography, and aurora gradients. Built to feel like a sanctuary, not an app.
+
+This is a place for slow words. For unexpected kindness. For the bottle in the sea, finally finding shore.
+
+Send a message into the light. Let it find someone who needs it.
+--- keywords ---
+kindness,anonymous,mindful,journal,gratitude,positivity,sanctuary,zen,letters,wellness
+--- promotionalText ---
+A quiet sanctuary for anonymous kindness. Send and receive gentle words from strangers — like a bottle in the sea, finally finding shore.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: ja
+--- description ---
+知らないだれかの、やさしいひとこと。
+名もなき人が綴った言葉が、風に乗ってあなたに届く。
+読まれることを目的としない、静かな場所。
+
+Lumi（ルミ）は、匿名のやさしい言葉を交わすための、小さな庭のようなアプリです。フォロワーも、いいねも、プロフィールもありません。あるのは、誰かが今日綴った一通の手紙と、それを受け取るあなただけ。
+
+届く言葉は、やさしさだけ。Lumiの仕組みが、心ない言葉をそっと取り除きます。だから安心して、開いてください。
+
+できること
+
+・ひとことを綴る。今日感じた気持ちを、そっと言葉にして放つ。
+・ひとことを受け取る。アプリを開くたび、知らないだれかの灯りが手のひらに届きます。
+・大切な言葉を残す。心に残ったひとことは、自分だけの引き出しに保存できます。
+・大切な人と二人だけの庭を。プライベートコードを共有すれば、あの人とだけ言葉を交わせます。
+・気分を選ぶ。やさしい / 励まし / 静か / 恋しい。風にまかせることもできます。
+・やわらかモード。ゆらぎの日には、もっとやさしい言葉だけが届くように。
+
+どんな人のために
+
+誰にも言えない夜のために。少し背中を押してほしい朝のために。誰かに「あなたは大切だよ」と伝えたい気持ちのために。
+
+静かなデザイン
+
+Lumiは静けさのために作られました。淡いピンク、温かいクリーム色、明朝体の文字。スクロールするフィードはありません。あなたが扉を開いたとき、ひとつのひとことだけが、静かにそこにあります。
+
+プライバシーを大切に
+
+アカウントも、プロフィールも、公開される身元もありません。ペアコードも匿名です。報告された言葉は丁寧に確認します。やさしくない言葉は、誰かに届く前にそっと取り除かれます。
+
+ウィジェットを置けば、ホーム画面にひとことの灯りが灯ります。通知は、本当にやさしい言葉が届いたときだけ。
+
+Lumiは、インターネットの片隅にある小さな縁側のような場所です。あなたが必要としている日に、そっと寄り添えますように。
+--- keywords ---
+癒し,名言,ポジティブ,匿名,メッセージ,言葉,心,手紙,自己肯定感,優しさ,寄り添う,一言,励まし,ぬくもり,安らぎ,やさしさ,こころ,ひとこと,そっと,瞑想,日記,感謝,前向き
+--- promotionalText ---
+知らないだれかの、やさしいひとこと。風に乗って届く匿名の言葉と、大切な人と二人だけで交わす手紙。静けさのためのアプリ。
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: zh-Hans
+--- description ---
+陌生人写下的一句温柔话，随风寄到你手里。
+你也可以写一句，让它飘向某个需要的人。
+没有点赞，没有粉丝，只有安静的善意。
+
+Lumi（露米）是一个匿名收发善意话语的小角落。在这里，人们写下温柔的一句话，放进风里，飘向素不相识的另一个人。没有头像，没有昵称，没有关注，只有今天有人想说的一句温柔话，和此刻打开它的你。
+
+所有飘进来的话，都只有善意。Lumi 用 AI 轻轻把不友善的内容拦在门外，所以你可以安心地打开每一封信。这里不是另一个社交平台，而是一个让你慢下来的地方。
+
+你可以做什么
+
+· 写一句温柔话。把今天的心情化作文字，放它去远方。也许明天，地球另一端的人会因为你写的这句话，多一分力气过完一天。
+· 收一句温柔话。打开 Lumi，某个远方的人写的一句话会落到你手里。也许你正需要它，也许你只是想被温柔提醒。
+· 收藏让你心动的话。打动你的句子，可以放进只属于你的小盒子。难过的时候，回来读一读。
+· 与重要的人结对。把你的私密码分享给好友、爱人或家人，从此你们之间有一条只属于你们的信道。不需要互加好友，不需要交换信息，只是悄悄的存在。
+· 选择心情。俏皮、宁静、励志、心动，或者交给风去决定。
+· 温柔模式。在情绪起伏的日子，Lumi 只会让最柔软的话靠近你。
+
+写给谁
+
+写给深夜睡不着的人。
+写给清晨需要一点力气的人。
+写给想悄悄告诉某个人「你很重要」的人。
+写给曾经希望一个陌生人对自己说一句温柔话的所有人。
+写给那些不想多说话，只想被温柔接住的人。
+
+安静的设计
+
+Lumi 为静谧而生。淡淡的粉、温暖的米色、衬线字体的呼吸感，灵感来自日式枯山水的留白。没有刷不到底的信息流，没有抢眼的红点。你打开它，只看到一句话，然后你可以慢慢呼吸。
+
+隐私守护
+
+没有账号，没有公开身份，没有手机号绑定。结对的码也是匿名的。被举报的内容会被认真处理。任何不友善的话，都不会出现在你眼前。我们从设计的第一天起就把「不打扰你」当作底线。
+
+小组件可以把一句温柔话放在你的主屏幕上，每隔一段时间换一句新的。通知只会在真正温柔的时刻悄悄到来——你随时可以关闭它们。
+
+Lumi 是互联网角落里的一个小院子，愿它在你需要的那一天，轻轻陪在你身边。
+--- keywords ---
+治愈,匿名,树洞,暖心,正能量,心情,倾诉,陪伴,解压,文字,励志,共情,温柔,善意,一句话,心灵,安慰,情绪,日记,冥想,孤独,漂流瓶,小众,文艺,表白,深夜
+--- promotionalText ---
+陌生人写下的一句温柔话，随风寄到你手里。匿名收发，AI 守住善意。一个为安静而生的小角落，等待今天需要它的人。
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: it
+--- description ---
+Lumi è un santuario silenzioso per le parole gentili.
+
+Scrivi una lettera anonima e lasciala volare nel vento. Ricevi sussurri di tenerezza da anime sconosciute, in qualche angolo del mondo. Una pausa dolce nel rumore della giornata.
+
+UN GIARDINO SEGRETO DI GENTILEZZA
+Lumi è diverso. Niente like, niente follower, niente competizione. Solo parole sincere, filtrate con dolcezza da un'intelligenza artificiale, che viaggiano tra cuori anonimi.
+
+COSA TROVERAI
+
+Scrivere lettere
+Regala a uno sconosciuto coraggio, conforto, o un sorriso. La tua lettera passa attraverso un filtro di IA che custodisce la gentilezza, e poi si libra nel vento digitale.
+
+Ricevere parole
+Ogni giorno arrivano sussurri di sconosciuti: messaggi di speranza, di calma, di presenza. Scorri per scegliere il tuo umore: giocoso, sereno, motivante o romantico.
+
+La tua collezione
+Custodisci le parole che ti toccano nel tuo rifugio personale. Un piccolo giardino dove tornare quando il silenzio ti chiama.
+
+Legame privato
+Con il codice di connessione puoi legarti in segreto a una persona cara, senza rivelare la tua identità. Un ponte discreto tra due mondi silenziosi.
+
+Giorni delicati
+Una modalità più dolce per i giorni in cui hai bisogno di una carezza particolare. Lumi sa che non tutti i giorni sono uguali.
+
+Widget per la schermata di blocco
+Che una parola gentile sia la tua prima compagna del mattino. Il widget di Lumi posa un soffio di dolcezza ogni ora sul tuo schermo.
+
+DESIGN
+Lumi si ispira all'estetica giapponese: vetro, luce, colori teneri. È un'app che apri per scelta, non per abitudine. Una presenza che calma invece di catturare.
+
+PRIVACY
+Niente profili, niente identificatori pubblicitari, niente annunci. Anonimo dal primo istante. Le tue parole restano tue.
+
+Lumi non è un social network. È un respiro.
+--- keywords ---
+gentilezza,meditazione,anonimo,dolcezza,calma,pace,sussurro,anima,lettera,benessere,zen,respiro,luce
+--- promotionalText ---
+Scrivi una lettera anonima di tenerezza. Ricevi sussurri da anime sconosciute. Un santuario silenzioso per la gentilezza.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: de-DE
+--- description ---
+Lumi ist ein stiller Zufluchtsort für freundliche Worte.
+
+Schreibe einen anonymen Brief und lass ihn in den Wind frei. Empfange Worte der Güte von unbekannten Seelen anderswo auf der Welt. Eine sanfte Pause vom Lärm des Alltags.
+
+DIGITALER GARTEN DER FREUNDLICHKEIT
+Lumi ist anders. Hier gibt es keine Likes, keine Follower, keinen Wettbewerb. Nur ehrliche, von einer KI geprüfte Worte des Wohlwollens, die zwischen anonymen Herzen wandern.
+
+WAS DICH ERWARTET
+
+Briefe schreiben
+Schenke jemandem Mut, Trost oder ein Lächeln. Dein Brief wird durch eine sanfte KI auf Freundlichkeit geprüft und dann in den digitalen Wind getragen.
+
+Briefe empfangen
+Empfange tägliche Worte von Fremden — Botschaften der Hoffnung, der Ruhe, der Verbundenheit. Wische, um deine Stimmung zu wählen: verspielt, friedlich, motivierend oder romantisch.
+
+Deine Sammlung
+Bewahre die Worte, die dich besonders berühren, in deinem persönlichen Vault auf. Ein stiller Garten, in dem du jederzeit zurückkehren kannst.
+
+Verbinde dich privat
+Mit dem Pair-Code kannst du dich heimlich mit einer geliebten Person verbinden, ohne deine Identität preiszugeben. Eine Brücke zwischen zwei stillen Welten.
+
+Sensible Tage
+Ein sanfterer Modus für Tage, an denen du eine besonders zarte Berührung brauchst. Lumi versteht, dass nicht jeder Tag gleich ist.
+
+Widget für den Sperrbildschirm
+Lass ein freundliches Wort jeden Tag dein erster Begleiter sein. Das Lumi-Widget bringt einen stündlichen Hauch von Güte direkt auf deinen Startbildschirm.
+
+DESIGN
+Lumi ist von japanischer Schlichtheit inspiriert — Glas, Licht, sanfte Farben. Es ist eine App, die du gerne öffnest, weil sie dich beruhigt, nicht weil sie um deine Aufmerksamkeit kämpft.
+
+DATENSCHUTZ
+Keine Profile, keine Tracking-IDs, keine Werbung. Anonym von Anfang an. Deine Worte bleiben dein.
+
+Lumi ist kein soziales Netzwerk. Es ist ein Atemzug.
+--- keywords ---
+achtsamkeit,freundlich,anonym,positiv,güte,meditation,ruhe,sanft,brief,worte,zen,seele,gefühl
+--- promotionalText ---
+Schreibe einen anonymen Brief der Güte. Empfange Worte von unbekannten Seelen. Ein stiller Zufluchtsort für freundliche Gedanken.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support
+
+### Locale: es-ES
+--- description ---
+Lumi es un santuario silencioso para las palabras amables.
+
+Escribe una carta anónima y déjala volar con el viento. Recibe susurros de ternura de almas desconocidas en algún rincón del mundo. Una pausa cálida en medio del ruido del día.
+
+UN JARDÍN SECRETO DE BONDAD
+Lumi es diferente. Sin likes, sin seguidores, sin competencia. Solo palabras sinceras, filtradas con suavidad por una IA, que viajan entre corazones anónimos.
+
+LO QUE ENCONTRARÁS
+
+Escribir cartas
+Regala a alguien valor, consuelo o una sonrisa. Tu carta pasa por un filtro de IA que cuida la bondad, y luego se eleva en el viento digital.
+
+Recibir palabras
+Cada día llegan susurros de desconocidos: mensajes de esperanza, de calma, de presencia. Desliza para elegir tu humor: juguetón, sereno, motivador o romántico.
+
+Tu colección
+Guarda las palabras que más te conmueven en tu refugio personal. Un pequeño jardín al que volver cuando el silencio te llame.
+
+Vínculo privado
+Con el código de conexión puedes vincularte en secreto con alguien especial, sin revelar tu identidad. Un puente discreto entre dos mundos silenciosos.
+
+Días sensibles
+Un modo más suave para los días en los que necesitas una caricia particular. Lumi entiende que no todos los días son iguales.
+
+Widget para la pantalla bloqueada
+Que una palabra amable sea tu primera compañera de la mañana. El widget de Lumi deposita ternura en tu pantalla cada hora.
+
+DISEÑO
+Lumi se inspira en la estética japonesa: cristal, luz, colores tiernos. Es una aplicación que abres por gusto, no por costumbre. Una presencia que calma en lugar de atrapar.
+
+PRIVACIDAD
+Sin perfiles, sin identificadores publicitarios, sin anuncios. Anónimo desde el primer instante. Tus palabras siguen siendo tuyas.
+
+Lumi no es una red social. Es un respiro.
+--- keywords ---
+meditacion,bienestar,anonimo,ternura,calma,paz,susurro,alma,amabilidad,carta,zen,refugio,luz
+--- promotionalText ---
+Escribe una carta anónima de ternura. Recibe susurros de almas desconocidas. Un santuario silencioso para la bondad.
+--- whatsNew ---
+(empty)
+--- marketingUrl ---
+https://tease.tr/lumi
+--- supportUrl ---
+https://tease.tr/lumi/support

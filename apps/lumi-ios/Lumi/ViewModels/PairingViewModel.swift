@@ -51,6 +51,12 @@ final class PairingViewModel: ObservableObject {
 
     /// Starts listening once Firebase Auth is ready. Safe to call multiple times.
     func startListening() {
+        if ScreenshotMode.isEnabled {
+            incomingRequests = ScreenshotMode.incomingRequests
+            pairs = ScreenshotMode.pairs
+            return
+        }
+
         guard !hasInitializedListeners else { return }
 
         // If already authenticated, start immediately
@@ -177,6 +183,12 @@ final class PairingViewModel: ObservableObject {
     // MARK: - Data Loading
 
     func loadMyCode() async {
+        if ScreenshotMode.isEnabled {
+            myCode = "LUMI-4827"
+            isLoadingCode = false
+            return
+        }
+
         guard Auth.auth().currentUser?.uid != nil else { return }
         isLoadingCode = true
         do {
@@ -188,6 +200,11 @@ final class PairingViewModel: ObservableObject {
     }
 
     func loadPairs() async {
+        if ScreenshotMode.isEnabled {
+            pairs = ScreenshotMode.pairs
+            return
+        }
+
         guard Auth.auth().currentUser?.uid != nil else { return }
         do {
             pairs = try await service.getMyPairs()
@@ -197,6 +214,12 @@ final class PairingViewModel: ObservableObject {
     }
 
     func loadRequests() async {
+        if ScreenshotMode.isEnabled {
+            incomingRequests = ScreenshotMode.incomingRequests
+            outgoingRequests = []
+            return
+        }
+
         guard Auth.auth().currentUser?.uid != nil else { return }
         do {
             let result = try await service.getPairRequests()
@@ -212,6 +235,11 @@ final class PairingViewModel: ObservableObject {
     func sendRequest() async {
         let code = friendCode.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !code.isEmpty else { return }
+        if ScreenshotMode.isEnabled {
+            successMessage = "Pair request sent!"
+            friendCode = ""
+            return
+        }
         guard Auth.auth().currentUser?.uid != nil else {
             error = "Please wait — signing in..."
             return
@@ -239,6 +267,13 @@ final class PairingViewModel: ObservableObject {
     }
 
     func acceptRequest(_ id: String) async {
+        if ScreenshotMode.isEnabled {
+            incomingRequests.removeAll { $0.id == id }
+            pairs = ScreenshotMode.pairs
+            pairingSuccess = true
+            return
+        }
+
         isLoading = true
         do {
             let result = try await service.respondToPairRequest(requestId: id, response: "accept")
@@ -255,6 +290,11 @@ final class PairingViewModel: ObservableObject {
     }
 
     func rejectRequest(_ id: String) async {
+        if ScreenshotMode.isEnabled {
+            incomingRequests.removeAll { $0.id == id }
+            return
+        }
+
         do {
             let result = try await service.respondToPairRequest(requestId: id, response: "reject")
             if result.success {
@@ -267,6 +307,11 @@ final class PairingViewModel: ObservableObject {
     }
 
     func unpair(_ connectionId: String) async {
+        if ScreenshotMode.isEnabled {
+            pairs.removeAll { $0.id == connectionId }
+            return
+        }
+
         do {
             let success = try await service.dissolvePair(connectionId: connectionId)
             if success {
@@ -278,6 +323,13 @@ final class PairingViewModel: ObservableObject {
     }
 
     func setNickname(for connectionId: String, nickname: String) async {
+        if ScreenshotMode.isEnabled {
+            if let idx = pairs.firstIndex(where: { $0.id == connectionId }) {
+                pairs[idx] = PairedUser(id: connectionId, partnerUid: pairs[idx].partnerUid, nickname: nickname)
+            }
+            return
+        }
+
         do {
             let success = try await service.updatePairNickname(connectionId: connectionId, nickname: nickname)
             if success {

@@ -4,8 +4,8 @@ struct WriteMessageView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var router: AppRouter
     @StateObject private var viewModel = WriteMessageViewModel()
-    @State private var messageText: String = ""
-    @State private var selectedMood: String = "Random"
+    @State private var messageText: String = ScreenshotMode.isEnabled ? ScreenshotMode.writeDraft : ""
+    @State private var selectedMood: String = ScreenshotMode.isEnabled ? ScreenshotMode.shareMood : "Random"
     @State private var selectedPair: PairedUser? = nil
     @State private var pairs: [PairedUser] = []
     @FocusState private var isTextFocused: Bool
@@ -29,7 +29,13 @@ struct WriteMessageView: View {
         }
         .background(LumiTheme.background)
         .onTapGesture { isTextFocused = false }
-        .task { pairs = (try? await CloudFunctionService.shared.getMyPairs()) ?? [] }
+        .task {
+            if ScreenshotMode.isEnabled {
+                pairs = ScreenshotMode.pairs
+            } else {
+                pairs = (try? await CloudFunctionService.shared.getMyPairs()) ?? []
+            }
+        }
     }
 
     // MARK: - Modal Header
@@ -188,7 +194,7 @@ struct WriteMessageView: View {
                     .frame(width: 4, height: 4)
             }
 
-            Text("\(charactersRemaining) CHARACTERS UNTIL GLOW")
+            Text(String(format: String(localized: "write.character_counter"), charactersRemaining))
                 .font(.custom("Plus Jakarta Sans", size: 12))
                 .foregroundStyle(
                     messageText.count > characterLimit

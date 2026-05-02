@@ -19,6 +19,13 @@ final class MessageFeedViewModel: ObservableObject {
     func loadFeed(mood: String? = nil) async {
         isLoading = true
         error = nil
+        if ScreenshotMode.isEnabled {
+            messages = ScreenshotMode.sampleFeed
+            currentIndex = 0
+            isLoading = false
+            return
+        }
+
         do {
             // Sensitive days: default to Peaceful mood for gentler messages
             let effectiveMood = SensitiveDaysService.shared.isSensitiveToday ? (mood ?? "Peaceful") : mood
@@ -27,6 +34,8 @@ final class MessageFeedViewModel: ObservableObject {
             currentIndex = 0
             // Share messages with widget
             WidgetDataService.saveMessages(feed.map(\.text))
+            // Mirror to paired Apple Watch (WCSession applicationContext, latest-state-wins)
+            WatchConnectivityService.shared.pushMessages(feed.map(\.text))
             // Mark first message received (notification popup triggers after first swipe)
             if !feed.isEmpty && !UserDefaults.standard.bool(forKey: "hasReceivedFirstMessage") {
                 UserDefaults.standard.set(true, forKey: "hasReceivedFirstMessage")
@@ -39,6 +48,10 @@ final class MessageFeedViewModel: ObservableObject {
 
     func swipeRight() async {
         guard let msg = currentMessage else { return }
+        if ScreenshotMode.isEnabled {
+            advanceToNext()
+            return
+        }
         do {
             try await service.rateMessage(messageId: msg.id, rating: "positive")
         } catch {
@@ -49,6 +62,10 @@ final class MessageFeedViewModel: ObservableObject {
 
     func swipeLeft() async {
         guard let msg = currentMessage else { return }
+        if ScreenshotMode.isEnabled {
+            advanceToNext()
+            return
+        }
         do {
             try await service.rateMessage(messageId: msg.id, rating: "negative")
         } catch {
@@ -64,6 +81,7 @@ final class MessageFeedViewModel: ObservableObject {
             return
         }
         savedMessageIds.insert(msg.id)
+        if ScreenshotMode.isEnabled { return }
         do {
             try await service.saveToVault(messageId: msg.id, text: msg.text, mood: msg.mood)
         } catch {
@@ -76,6 +94,13 @@ final class MessageFeedViewModel: ObservableObject {
 
     func reportCurrentMessage() async {
         guard let msg = currentMessage else { return }
+        if ScreenshotMode.isEnabled {
+            showReportConfirmation = true
+            advanceToNext()
+            try? await Task.sleep(for: .seconds(2))
+            showReportConfirmation = false
+            return
+        }
         do {
             try await service.reportMessage(messageId: msg.id)
             showReportConfirmation = true
@@ -103,6 +128,7 @@ final class MessageFeedViewModel: ObservableObject {
     }
 
     private func loadMore() async {
+        if ScreenshotMode.isEnabled { return }
         do {
             let more = try await service.getMessageFeed()
             messages.append(contentsOf: more)

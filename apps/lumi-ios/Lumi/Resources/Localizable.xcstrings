@@ -33,9 +33,6 @@
         }
       }
     },
-    "%@ CHARACTERS UNTIL GLOW" : {
-
-    },
     "common.cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -820,9 +817,6 @@
       }
     },
     "Lumi" : {
-
-    },
-    "Lumi Version 2.4.0 — Made with intention for mindful souls." : {
 
     },
     "LUMI-XXXX" : {

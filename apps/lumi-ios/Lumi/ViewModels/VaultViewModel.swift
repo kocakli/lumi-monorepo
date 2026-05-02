@@ -10,6 +10,12 @@ final class VaultViewModel: ObservableObject {
     private var listener: ListenerRegistration?
 
     func startListening() {
+        if ScreenshotMode.isEnabled {
+            moments = ScreenshotMode.vaultMoments
+            isLoading = false
+            return
+        }
+
         guard let uid = Auth.auth().currentUser?.uid else { return }
         isLoading = true
 
@@ -44,6 +50,11 @@ final class VaultViewModel: ObservableObject {
     }
 
     func delete(momentId: String) async {
+        if ScreenshotMode.isEnabled {
+            moments.removeAll { $0.id == momentId }
+            return
+        }
+
         guard let uid = Auth.auth().currentUser?.uid else { return }
         do {
             try await Firestore.firestore()

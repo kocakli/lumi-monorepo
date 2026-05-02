@@ -14,6 +14,12 @@ final class AuthService: ObservableObject {
     }
 
     private func signInAnonymously() async {
+        if ScreenshotMode.isEnabled {
+            uid = "screenshot-user"
+            isReady = true
+            return
+        }
+
         // If already signed in, use existing user
         if let user = Auth.auth().currentUser {
             uid = user.uid
