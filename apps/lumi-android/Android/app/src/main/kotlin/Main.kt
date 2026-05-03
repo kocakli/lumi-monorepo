@@ -7,6 +7,11 @@ import skip.ui.*
 
 import android.Manifest
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.media.AudioAttributes
+import android.net.Uri
+import android.os.Build
 import android.graphics.Color as AndroidColor
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -42,6 +47,42 @@ open class AndroidAppMain: Application {
         logger.info("starting app")
         ProcessInfo.launch(applicationContext)
         AppDelegate.shared.onInit()
+        createLumiNotificationChannel()
+    }
+
+    /// Creates the "lumi.message" notification channel with the
+    /// Lumi-branded custom sound (lumi_notification.wav) — matches the
+    /// iOS APNs payload's `category: "lumi.message"`. The channel id is
+    /// also referenced by `default_notification_channel_id` meta-data in
+    /// AndroidManifest.xml so backend FCM messages without an explicit
+    /// channel route here.
+    ///
+    /// IMPORTANT: a channel's sound is immutable after creation. Bumping
+    /// the sound on a future release means a new channel id (e.g.
+    /// "lumi.message.v2") so existing installs pick up the new sound.
+    private fun createLumiNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
+        }
+        val channelId = "lumi.message"
+        val name = "Lumi messages"
+        val description = "Letters from strangers and from your paired person"
+        val importance = NotificationManager.IMPORTANCE_HIGH
+
+        val soundUri = Uri.parse("android.resource://${packageName}/raw/lumi_notification")
+        val audioAttrs = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        val channel = NotificationChannel(channelId, name, importance).apply {
+            this.description = description
+            enableVibration(true)
+            setSound(soundUri, audioAttrs)
+        }
+
+        val nm = getSystemService(NotificationManager::class.java)
+        nm?.createNotificationChannel(channel)
     }
 
     companion object {
@@ -66,6 +107,10 @@ open class MainActivity: AppCompatActivity {
                 SideEffect { saveableStateHolder.removeState(true) }
             }
         }
+
+        // Hand the Activity to SkipFirebase Messaging so it can register
+        // for FCM token refresh + foreground message delivery.
+        skip.firebase.messaging.Messaging.messaging().onActivityCreated(this)
 
         AppDelegate.shared.onLaunch()
 

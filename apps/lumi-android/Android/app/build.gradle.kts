@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.android.application)
     id("skip-build-plugin")
+    // Pulls google-services.json into BuildConfig so Firebase Auth /
+    // Firestore / Functions / Messaging can resolve project + API key.
+    id("com.google.gms.google-services") version "4.4.4" apply true
 }
 
 skip {
