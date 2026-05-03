@@ -92,3 +92,13 @@ android {
         }
     }
 }
+
+// Lumi-specific extra dependencies. Skip auto-manages SwiftUI/Compose/
+// Firebase/Lottie via the skip-build-plugin; the widget framework
+// (androidx.glance) is Android-only with no Skip bridge, so we declare it
+// explicitly here.
+dependencies {
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-material3:1.1.1")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+}

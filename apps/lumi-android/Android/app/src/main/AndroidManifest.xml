@@ -52,5 +52,18 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="lumi.message" />
 
+        <!-- Home-screen widget (Glance, Compose-based). Mirrors the iOS
+             LumiWidget — hourly rotating positivity message. -->
+        <receiver
+            android:name=".LumiGlanceWidgetReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lumi_widget_info" />
+        </receiver>
+
     </application>
 </manifest>

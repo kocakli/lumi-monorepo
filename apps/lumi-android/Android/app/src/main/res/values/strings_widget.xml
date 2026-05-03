@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shown in the widget picker when the user adds the Lumi widget. -->
+    <string name="widget_description">A gentle, hourly rotating positive message on your home screen.</string>
+</resources>
