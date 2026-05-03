@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 #if os(Android)
 import SkipFirebaseAuth
 #else
@@ -19,12 +20,13 @@ import FirebaseFirestore
 ///   we treat the flag as always false.
 /// - NotificationService.flushPendingToken() is invoked after sign-in to upsert
 ///   the FCM token if it arrived before auth was ready (same contract as iOS).
+@Observable
 @MainActor
-final class AuthService: ObservableObject {
+final class AuthService {
     static let shared = AuthService()
 
-    @Published var isReady = false
-    @Published var uid: String?
+    var isReady = false
+    var uid: String?
 
     private init() {
         Task { await signInAnonymously() }

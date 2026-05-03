@@ -1,17 +1,20 @@
 import SwiftUI
+import Observation
 
 /// Top-level navigation enum + observable router. Mirrors
-/// apps/lumi-ios/Lumi/LumiApp.swift's AppRouter — the screens are kept
-/// platform-symmetric so views can be ported across without rename churn.
+/// apps/lumi-ios/Lumi/LumiApp.swift's AppRouter, but uses Swift's
+/// `@Observable` macro (iOS 17+) instead of `ObservableObject` so the
+/// type works on Skip Android — Combine isn't available there.
 enum AppScreen {
     case home, write, receive, settings, vault, pairs
 }
 
+@Observable
 @MainActor
-final class AppRouter: ObservableObject {
-    @Published var currentScreen: AppScreen = .home
-    @Published var showWrite = false
-    @Published var showMessageSent = false
+final class AppRouter {
+    var currentScreen: AppScreen = .home
+    var showWrite = false
+    var showMessageSent = false
 
     func navigate(to screen: AppScreen) {
         if screen == .write {

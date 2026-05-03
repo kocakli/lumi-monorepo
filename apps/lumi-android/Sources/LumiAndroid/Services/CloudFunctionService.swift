@@ -1,4 +1,9 @@
 import Foundation
+#if canImport(FoundationNetworking)
+// On Linux / Skip Android, URLSession lives in FoundationNetworking;
+// Apple Foundation re-exports it natively and this import is a no-op there.
+import FoundationNetworking
+#endif
 #if os(Android)
 import SkipFirebaseAuth
 #else
@@ -57,10 +62,13 @@ enum CloudFunctionError: Error {
 ///   https://<region>-<project>.cloudfunctions.net/<functionName>
 /// They expect: POST, Authorization: Bearer <Firebase Auth ID token>, body {"data": ...}
 /// They return: {"result": ...}
-final class CloudFunctionService: Sendable {
+final class CloudFunctionService: @unchecked Sendable {
     static let shared = CloudFunctionService()
 
     private let baseURL = "https://europe-west1-lumi-tease.cloudfunctions.net"
+    // URLSession in Skip Android / FoundationNetworking isn't Sendable;
+    // we mark @unchecked Sendable for the class because the only state is
+    // an immutable `let session` that's safe to share across actors.
     private let session: URLSession
 
     private init() {

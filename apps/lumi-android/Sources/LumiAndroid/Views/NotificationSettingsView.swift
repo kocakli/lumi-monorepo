@@ -1,13 +1,16 @@
 import SwiftUI
 
 struct NotificationSettingsView: View {
-    @EnvironmentObject var notificationService: NotificationService
+    @Environment(NotificationService.self) var notificationService: NotificationService
     @Environment(\.dismiss) var dismiss
 
     private let accentPink = Color(red: 0.925, green: 0.286, blue: 0.600)
 
     var body: some View {
-        ZStack {
+        // @Bindable shadow — required so the @Observable model exposes
+        // $-prefixed Bindings to inner Toggle/TextField etc.
+        @Bindable var notificationService = notificationService
+        return ZStack {
             LumiTheme.background
                 .ignoresSafeArea()
 
@@ -106,7 +109,8 @@ struct NotificationSettingsView: View {
     // MARK: - Time
 
     private var timeSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        @Bindable var notificationService = notificationService
+        return VStack(alignment: .leading, spacing: 14) {
             Text("notif_settings.section.time")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .tracking(1.2)
@@ -147,7 +151,8 @@ struct NotificationSettingsView: View {
     // MARK: - Moods
 
     private var moodSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        @Bindable var notificationService = notificationService
+        return VStack(alignment: .leading, spacing: 14) {
             Text("notif_settings.section.content")
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .tracking(1.2)

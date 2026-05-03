@@ -17,11 +17,11 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
     // `internal` access (no `private`) — Skip's @bridge annotation requires
     // bridge-visible state to be at least internal so the Compose layer can
     // reach the StateObjects.
-    @StateObject var authService = AuthService.shared
-    @StateObject var router = AppRouter()
-    @StateObject var sensitiveDays = SensitiveDaysService.shared
-    @StateObject var notificationService = NotificationService.shared
-    @StateObject var pairingVM = PairingViewModel()
+    @State var authService = AuthService.shared
+    @State var router = AppRouter()
+    @State var sensitiveDays = SensitiveDaysService.shared
+    @State var notificationService = NotificationService.shared
+    @State var pairingVM = PairingViewModel()
 
     /* SKIP @bridge */public init() {
         // Configure Firebase before any @StateObject lazy-init touches Firebase
@@ -109,11 +109,11 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
                     .zIndex(5)
             }
         }
-        .environmentObject(authService)
-        .environmentObject(router)
-        .environmentObject(sensitiveDays)
-        .environmentObject(notificationService)
-        .environmentObject(pairingVM)
+        .environment(authService)
+        .environment(router)
+        .environment(sensitiveDays)
+        .environment(notificationService)
+        .environment(pairingVM)
         .task {
             logger.info("Lumi Android boot — uid=\(authService.uid ?? "?")")
             notificationService.incrementAppOpenCount()
@@ -133,8 +133,8 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
                 }
 
             WriteMessageView()
-                .environmentObject(authService)
-                .environmentObject(router)
+                .environment(authService)
+                .environment(router)
                 .frame(maxHeight: 580)
                 .clipShape(RoundedRectangle(cornerRadius: 48, style: .continuous))
                 .shadow(

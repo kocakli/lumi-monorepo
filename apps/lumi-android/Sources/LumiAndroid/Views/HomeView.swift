@@ -6,7 +6,7 @@ import SwiftUI
 /// exact LumiHeader, FloatingBottomBar, animated cherry-blossom motifs)
 /// will land in subsequent ports as those components arrive.
 struct HomeView: View {
-    @EnvironmentObject var router: AppRouter
+    @Environment(AppRouter.self) var router: AppRouter
 
     var body: some View {
         ZStack {

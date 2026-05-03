@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 #if os(Android)
 import SkipFirebaseFirestore
 #else
@@ -10,11 +11,12 @@ import SkipFirebaseAuth
 import FirebaseAuth
 #endif
 
+@Observable
 @MainActor
-final class WriteMessageViewModel: ObservableObject {
-    @Published var isSending = false
-    @Published var error: String?
-    @Published var didSend = false
+final class WriteMessageViewModel {
+    var isSending = false
+    var error: String?
+    var didSend = false
 
     func sendMessage(text: String, mood: String, targetUserId: String? = nil) async {
         if let targetUserId {

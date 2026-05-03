@@ -29,7 +29,9 @@ enum WidgetDataService {
     }
 
     static func loadMessages() -> [String] {
-        sharedDefaults.stringArray(forKey: messagesKey) ?? []
+        // Skip Foundation only exposes `array(forKey:)` (returns Any?) so we
+        // cast manually; this also works on iOS Foundation.
+        (sharedDefaults.array(forKey: messagesKey) as? [String]) ?? []
     }
 
     private static var sharedDefaults: UserDefaults {

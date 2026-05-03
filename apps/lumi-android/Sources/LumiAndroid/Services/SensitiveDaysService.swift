@@ -1,13 +1,33 @@
 import SwiftUI
+import Observation
 
+@Observable
 @MainActor
-final class SensitiveDaysService: ObservableObject {
+final class SensitiveDaysService {
     static let shared = SensitiveDaysService()
 
-    @AppStorage("sensitiveDays_enabled") var isEnabled = false
-    @AppStorage("sensitiveDays_lastStart") var lastStartTimestamp: Double = 0
-    @AppStorage("sensitiveDays_duration") var duration: Int = 5       // 3-10 days
-    @AppStorage("sensitiveDays_cycleLength") var cycleLength: Int = 28 // 21-40 days
+    // Note: @AppStorage is a property wrapper for SwiftUI views; on a model
+    // class we read/write UserDefaults manually so the type can opt into
+    // @Observable cleanly (Skip Android lacks Combine, on which @AppStorage
+    // observation depends).
+    @ObservationIgnored private let store = UserDefaults.standard
+
+    var isEnabled: Bool {
+        get { store.bool(forKey: "sensitiveDays_enabled") }
+        set { store.set(newValue, forKey: "sensitiveDays_enabled") }
+    }
+    var lastStartTimestamp: Double {
+        get { store.double(forKey: "sensitiveDays_lastStart") }
+        set { store.set(newValue, forKey: "sensitiveDays_lastStart") }
+    }
+    var duration: Int {
+        get { (store.object(forKey: "sensitiveDays_duration") as? Int) ?? 5 }
+        set { store.set(newValue, forKey: "sensitiveDays_duration") }
+    }
+    var cycleLength: Int {
+        get { (store.object(forKey: "sensitiveDays_cycleLength") as? Int) ?? 28 }
+        set { store.set(newValue, forKey: "sensitiveDays_cycleLength") }
+    }
 
     private init() {}
 

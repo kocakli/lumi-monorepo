@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - PairsListView
 
 struct PairsListView: View {
-    @EnvironmentObject var router: AppRouter
-    @StateObject var viewModel = PairingViewModel()
+    @Environment(AppRouter.self) var router: AppRouter
+    @State var viewModel = PairingViewModel()
     @State var dragOffset: CGFloat = 0
 
     var body: some View {
@@ -177,7 +177,7 @@ struct PairsListView: View {
 
 struct PairCard: View {
     let pair: PairedUser
-    @ObservedObject var viewModel: PairingViewModel
+    @Bindable var viewModel: PairingViewModel
 
     @State var isEditingNickname = false
     @State var editedNickname = ""
@@ -341,9 +341,11 @@ struct PairCard: View {
 
 // MARK: - Preview
 
+#if !os(Android)
 struct PairsListView_Previews: PreviewProvider {
     static var previews: some View {
         PairsListView()
-            .environmentObject(AppRouter())
+            .environment(AppRouter())
     }
 }
+#endif

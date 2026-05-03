@@ -89,7 +89,11 @@ struct MessageSentView: View {
                         .multilineTextAlignment(.center)
                         .tracking(-0.9)
                         .lineSpacing(7)
+                        #if !os(Android)
+                        #if !os(Android)
                         .fixedSize(horizontal: false, vertical: true)
+                        #endif
+                        #endif
 
                     // Subtitle
                     Text("message_sent.subtitle")
@@ -100,7 +104,9 @@ struct MessageSentView: View {
                         .tracking(4)
                         .textCase(.uppercase)
                         .opacity(0.7)
+                        #if !os(Android)
                         .fixedSize(horizontal: false, vertical: true)
+                        #endif
                 }
                 .padding(.horizontal, 24)
 

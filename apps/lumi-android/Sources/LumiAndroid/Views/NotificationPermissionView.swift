@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct NotificationPermissionView: View {
-    @EnvironmentObject var notificationService: NotificationService
+    @Environment(NotificationService.self) var notificationService: NotificationService
     @State var showContent = false
 
     var body: some View {

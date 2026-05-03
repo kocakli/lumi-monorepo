@@ -6,8 +6,8 @@ import SwiftUI
 // MARK: - VaultView
 
 struct VaultView: View {
-    @EnvironmentObject var router: AppRouter
-    @StateObject var viewModel = VaultViewModel()
+    @Environment(AppRouter.self) var router: AppRouter
+    @State var viewModel = VaultViewModel()
     @State var dragOffset: CGFloat = 0
     @State var shareItem: ShareItem?
 
@@ -101,7 +101,7 @@ struct VaultView: View {
             Text("vault.subtitle")
                 .font(.custom("PlusJakartaSans-Regular", size: 11))
                 .foregroundStyle(Color(red: 0.349, green: 0.373, blue: 0.400))
-                .kerning(3.3)
+                .tracking(3.3)
         }
     }
 
@@ -164,7 +164,7 @@ struct VaultTextCard: View {
             Text(moment.date)
                 .font(.custom("PlusJakartaSans-Regular", size: 10))
                 .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.6))
-                .kerning(1)
+                .tracking(1)
             Image("icon-sparkle-tiny")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -249,7 +249,7 @@ struct VaultImageCard: View {
                 Text(moment.date)
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.6))
-                    .kerning(1)
+                    .tracking(1)
                 Image("icon-sparkle-tiny")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -276,7 +276,7 @@ struct VaultTagPill: View {
         Text(text)
             .font(.custom("PlusJakartaSans-Regular", size: 10))
             .foregroundStyle(Color(red: 0.294, green: 0.271, blue: 0.286))
-            .kerning(0.5)
+            .tracking(0.5)
             .padding(.horizontal, 16)
             .padding(.vertical, 6)
             .background(
@@ -324,8 +324,10 @@ struct ShareItem: Identifiable {
     let mood: String
 }
 
+#if !os(Android)
 struct VaultView_Previews: PreviewProvider {
     static var previews: some View {
         VaultView()
     }
 }
+#endif

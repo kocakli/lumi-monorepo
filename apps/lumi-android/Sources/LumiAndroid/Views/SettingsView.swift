@@ -1,16 +1,16 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject var router: AppRouter
-    @EnvironmentObject var authService: AuthService
+    @Environment(AppRouter.self) var router: AppRouter
+    @Environment(AuthService.self) var authService: AuthService
 
-    @EnvironmentObject var notificationService: NotificationService
+    @Environment(NotificationService.self) var notificationService: NotificationService
     @State var stealthMode = false
-    @EnvironmentObject var sensitiveDays: SensitiveDaysService
+    @Environment(SensitiveDaysService.self) var sensitiveDays: SensitiveDaysService
     @State var isShowingSupport = false
     @State var showDatePicker = false
     @State var dragOffset: CGFloat = 0
-    @StateObject var pairingVM = PairingViewModel()
+    @State var pairingVM = PairingViewModel()
 
     @State var showDeactivateConfirm = false
     @State var isDeactivating = false
@@ -552,13 +552,15 @@ struct SettingsView: View {
             Text("sensitive.question")
                 .font(.custom("NotoSerif-Regular", size: 16))
                 .foregroundStyle(LumiTheme.onSurface)
+                #if !os(Android)
                 .fixedSize(horizontal: false, vertical: true)
-
+                #endif
             Text("sensitive.helper")
                 .font(.custom("PlusJakartaSans-Regular", size: 12))
                 .foregroundStyle(LumiTheme.mutedText)
+                #if !os(Android)
                 .fixedSize(horizontal: false, vertical: true)
-
+                #endif
             // Last sensitive period date picker
             VStack(alignment: .leading, spacing: 8) {
                 Text("sensitive.last_period")
@@ -907,8 +909,10 @@ struct SupportView: View {
     }
 }
 
+#if !os(Android)
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()
     }
 }
+#endif

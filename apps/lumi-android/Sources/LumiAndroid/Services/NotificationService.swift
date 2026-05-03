@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 #if os(Android)
 import SkipFirebaseFirestore
 #else
@@ -22,30 +23,71 @@ import UIKit
 ///   Activity layer via Compose; this method becomes a no-op stub that
 ///   marks state as already-asked. The real Android permission request is
 ///   wired in `NotificationPermissionView` (see Faz 6) and `MainActivity`.
+@Observable
 @MainActor
-final class NotificationService: ObservableObject {
+final class NotificationService {
     static let shared = NotificationService()
 
+    // @AppStorage depends on Combine — replaced with manual UserDefaults
+    // accessors so this @Observable class compiles on Skip Android.
+    @ObservationIgnored private let store = UserDefaults.standard
+
     // Preferences (persisted)
-    @AppStorage("notif_enabled") var isEnabled = false
-    @AppStorage("notif_frequency") var frequency: Int = 1
-    @AppStorage("notif_period_morning") var periodMorning = true
-    @AppStorage("notif_period_afternoon") var periodAfternoon = false
-    @AppStorage("notif_period_evening") var periodEvening = false
-    @AppStorage("notif_mood_playful") var moodPlayful = true
-    @AppStorage("notif_mood_peaceful") var moodPeaceful = true
-    @AppStorage("notif_mood_motivating") var moodMotivating = true
-    @AppStorage("notif_mood_romantic") var moodRomantic = true
+    var isEnabled: Bool {
+        get { store.bool(forKey: "notif_enabled") }
+        set { store.set(newValue, forKey: "notif_enabled") }
+    }
+    var frequency: Int {
+        get { (store.object(forKey: "notif_frequency") as? Int) ?? 1 }
+        set { store.set(newValue, forKey: "notif_frequency") }
+    }
+    var periodMorning: Bool {
+        get { (store.object(forKey: "notif_period_morning") as? Bool) ?? true }
+        set { store.set(newValue, forKey: "notif_period_morning") }
+    }
+    var periodAfternoon: Bool {
+        get { store.bool(forKey: "notif_period_afternoon") }
+        set { store.set(newValue, forKey: "notif_period_afternoon") }
+    }
+    var periodEvening: Bool {
+        get { store.bool(forKey: "notif_period_evening") }
+        set { store.set(newValue, forKey: "notif_period_evening") }
+    }
+    var moodPlayful: Bool {
+        get { (store.object(forKey: "notif_mood_playful") as? Bool) ?? true }
+        set { store.set(newValue, forKey: "notif_mood_playful") }
+    }
+    var moodPeaceful: Bool {
+        get { (store.object(forKey: "notif_mood_peaceful") as? Bool) ?? true }
+        set { store.set(newValue, forKey: "notif_mood_peaceful") }
+    }
+    var moodMotivating: Bool {
+        get { (store.object(forKey: "notif_mood_motivating") as? Bool) ?? true }
+        set { store.set(newValue, forKey: "notif_mood_motivating") }
+    }
+    var moodRomantic: Bool {
+        get { (store.object(forKey: "notif_mood_romantic") as? Bool) ?? true }
+        set { store.set(newValue, forKey: "notif_mood_romantic") }
+    }
 
     // Pre-permission tracking
-    @AppStorage("notif_permission_asked") var hasAskedPermission = false
-    @AppStorage("notif_permission_denied") var wasDenied = false
-    @AppStorage("notif_app_open_count") var appOpenCount: Int = 0
+    var hasAskedPermission: Bool {
+        get { store.bool(forKey: "notif_permission_asked") }
+        set { store.set(newValue, forKey: "notif_permission_asked") }
+    }
+    var wasDenied: Bool {
+        get { store.bool(forKey: "notif_permission_denied") }
+        set { store.set(newValue, forKey: "notif_permission_denied") }
+    }
+    var appOpenCount: Int {
+        get { store.integer(forKey: "notif_app_open_count") }
+        set { store.set(newValue, forKey: "notif_app_open_count") }
+    }
 
-    @Published var showPrePermission = false
+    var showPrePermission = false
 
     // Holds the FCM token if Auth wasn't ready when it arrived
-    private var pendingFCMToken: String?
+    @ObservationIgnored private var pendingFCMToken: String?
 
     private init() {}
 

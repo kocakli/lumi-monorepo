@@ -262,6 +262,7 @@ struct PetalInfo {
 
 // MARK: - Preview
 
+#if !os(Android)
 struct PairingSuccessAnimation_Previews: PreviewProvider {
     static var previews: some View {
         ZStack {
@@ -270,3 +271,4 @@ struct PairingSuccessAnimation_Previews: PreviewProvider {
         }
     }
 }
+#endif

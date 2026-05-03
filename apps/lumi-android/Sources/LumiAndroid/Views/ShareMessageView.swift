@@ -58,7 +58,7 @@ struct ShareMessageView: View {
                 Text("SHARE")
                     .font(.custom("PlusJakartaSans-Regular", size: 13))
                     .fontWeight(.medium)
-                    .kerning(2)
+                    .tracking(2)
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
@@ -149,7 +149,7 @@ struct ShareCardRenderable: View {
                 Text(mood.uppercased())
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(Color(red: 0.294, green: 0.271, blue: 0.286))
-                    .kerning(2)
+                    .tracking(2)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(
@@ -172,7 +172,7 @@ struct ShareCardRenderable: View {
                         .font(.system(size: 13, weight: .light, design: .serif))
                         .italic()
                         .foregroundColor(Color(red: 0.475, green: 0.314, blue: 0.239).opacity(0.7))
-                        .kerning(1.8)
+                        .tracking(1.8)
                     Rectangle().fill(Color(red: 0.992, green: 0.776, blue: 0.678).opacity(0.6)).frame(width: 16, height: 1)
                 }
                 .padding(.top, 16)

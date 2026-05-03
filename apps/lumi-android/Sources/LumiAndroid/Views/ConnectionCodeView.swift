@@ -2,11 +2,12 @@ import SwiftUI
 
 struct ConnectionCodeView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject var viewModel = PairingViewModel()
+    @State var viewModel = PairingViewModel()
     @State var codeCopied = false
 
     var body: some View {
-        ZStack(alignment: .top) {
+        @Bindable var viewModel = viewModel
+        return ZStack(alignment: .top) {
             AuroraBackground()
             scrollContent
             stickyHeader
@@ -490,6 +491,7 @@ extension View {
 
 // MARK: - Preview
 
+#if !os(Android)
 struct ConnectionCodeView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
@@ -497,3 +499,4 @@ struct ConnectionCodeView_Previews: PreviewProvider {
         }
     }
 }
+#endif

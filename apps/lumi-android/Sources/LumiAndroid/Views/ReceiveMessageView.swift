@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct ReceiveMessageView: View {
-    @EnvironmentObject var router: AppRouter
+    @Environment(AppRouter.self) var router: AppRouter
     @AppStorage("hasSeenSwipeOnboarding") var hasSeenOnboarding = false
-    @StateObject var viewModel = MessageFeedViewModel()
+    @State var viewModel = MessageFeedViewModel()
 
     @State var isShowingShare = false
     @State var showOnboarding = false
@@ -133,7 +133,7 @@ struct ReceiveMessageView: View {
                 .font(.system(size: 9))
             Text("receive.gentle_mode")
                 .font(LumiTheme.label(9))
-                .kerning(1.2)
+                .tracking(1.2)
         }
         .foregroundStyle(Color(red: 0.925, green: 0.286, blue: 0.600).opacity(0.6))
         .padding(.horizontal, 14)
@@ -275,7 +275,7 @@ struct SwipeCard: View {
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .fontWeight(.bold)
                     .foregroundStyle(LumiTheme.sparklePink)
-                    .kerning(message.senderName.hasPrefix("LUMI-") ? 1.5 : 0.5)
+                    .tracking(message.senderName.hasPrefix("LUMI-") ? 1.5 : 0.5)
             }
             Group {
                 if message.isPairMessage {
@@ -287,7 +287,7 @@ struct SwipeCard: View {
             .font(.custom("PlusJakartaSans-Regular", size: 9))
             .fontWeight(.semibold)
             .foregroundStyle(LumiTheme.sparklePink.opacity(0.7))
-            .kerning(1.5)
+            .tracking(1.5)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
@@ -306,7 +306,7 @@ struct SwipeCard: View {
         Text(message.mood.uppercased())
             .font(.custom("PlusJakartaSans-Regular", size: 10)).fontWeight(.semibold)
             .foregroundStyle(Color(red: 0.294, green: 0.271, blue: 0.286))
-            .kerning(2.5)
+            .tracking(2.5)
             .padding(.horizontal, 17).padding(.vertical, 7)
             .background(Capsule(style: .continuous).fill(Color.white.opacity(0.4)))
             .overlay(Capsule(style: .continuous).stroke(Color.white.opacity(0.5), lineWidth: 1))
@@ -339,21 +339,21 @@ struct SwipeCard: View {
                     Text(isSaved ? "receive.action.saved" : "receive.action.save")
                         .font(.custom("PlusJakartaSans-Regular", size: 9))
                         .foregroundStyle(isSaved ? LumiTheme.secondary : Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4))
-                        .kerning(0.9)
+                        .tracking(0.9)
                 }
             }
             Button(action: onShare) {
                 VStack(spacing: 12) {
                     Image("icon-share-glass").resizable().aspectRatio(contentMode: .fit).frame(width: 51, height: 49)
                     Text("receive.action.share").font(.custom("PlusJakartaSans-Regular", size: 9))
-                        .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).kerning(0.9)
+                        .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).tracking(0.9)
                 }
             }
             Button(action: onReport) {
                 VStack(spacing: 12) {
                     Image("icon-report-glass").resizable().aspectRatio(contentMode: .fit).frame(width: 48, height: 50)
                     Text("receive.action.report").font(.custom("PlusJakartaSans-Regular", size: 9))
-                        .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).kerning(0.9)
+                        .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).tracking(0.9)
                 }
             }
         }
@@ -406,7 +406,7 @@ struct SwipeOnboarding: View {
                             .font(.custom("PlusJakartaSans-Regular", size: 10))
                             .fontWeight(.medium)
                             .foregroundStyle(.white.opacity(0.5))
-                            .kerning(2)
+                            .tracking(2)
                     }
                     .frame(maxWidth: .infinity)
                     .opacity(phase >= 2 ? 1 : 0)
@@ -439,7 +439,7 @@ struct SwipeOnboarding: View {
                             .font(.custom("PlusJakartaSans-Regular", size: 10))
                             .fontWeight(.medium)
                             .foregroundStyle(.white.opacity(0.5))
-                            .kerning(2)
+                            .tracking(2)
                     }
                     .frame(maxWidth: .infinity)
                     .opacity(phase >= 3 ? 1 : 0)
@@ -465,7 +465,7 @@ struct SwipeOnboarding: View {
                             .font(.custom("PlusJakartaSans-Regular", size: 13))
                             .fontWeight(.semibold)
                             .foregroundStyle(.white)
-                            .kerning(4)
+                            .tracking(4)
                             .padding(.horizontal, 56)
                             .padding(.vertical, 18)
                             .background(
@@ -501,8 +501,10 @@ struct SwipeOnboarding: View {
     }
 }
 
+#if !os(Android)
 struct ReceiveMessageView_Previews: PreviewProvider {
     static var previews: some View {
         ReceiveMessageView()
     }
 }
+#endif

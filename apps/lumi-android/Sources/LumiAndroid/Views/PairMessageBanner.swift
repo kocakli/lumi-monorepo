@@ -16,7 +16,7 @@ struct PairMessageBanner: View {
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .fontWeight(.semibold)
                     .foregroundStyle(LumiTheme.onSurface)
-                    .kerning(1.2)
+                    .tracking(1.2)
 
                 Spacer()
 
@@ -38,7 +38,7 @@ struct PairMessageBanner: View {
                     .font(.custom("PlusJakartaSans-Regular", size: 9))
                     .fontWeight(.semibold)
                     .foregroundStyle(LumiTheme.onSurfaceVariant)
-                    .kerning(1.5)
+                    .tracking(1.5)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(
@@ -53,7 +53,7 @@ struct PairMessageBanner: View {
                         .font(.custom("PlusJakartaSans-Regular", size: 11))
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
-                        .kerning(1)
+                        .tracking(1)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(

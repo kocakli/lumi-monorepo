@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 #if os(Android)
 import SkipFirebaseFirestore
 #else
@@ -10,10 +11,11 @@ import SkipFirebaseAuth
 import FirebaseAuth
 #endif
 
+@Observable
 @MainActor
-final class VaultViewModel: ObservableObject {
-    @Published var moments: [VaultMoment] = []
-    @Published var isLoading = false
+final class VaultViewModel {
+    var moments: [VaultMoment] = []
+    var isLoading = false
 
     private var listener: ListenerRegistration?
 

@@ -1,12 +1,14 @@
 import SwiftUI
+import Observation
 
+@Observable
 @MainActor
-final class MessageFeedViewModel: ObservableObject {
-    @Published var messages: [LumiMessage] = []
-    @Published var currentIndex = 0
-    @Published var isLoading = false
-    @Published var error: String?
-    @Published var savedMessageIds: Set<String> = []
+final class MessageFeedViewModel {
+    var messages: [LumiMessage] = []
+    var currentIndex = 0
+    var isLoading = false
+    var error: String?
+    var savedMessageIds: Set<String> = []
 
     private let service = CloudFunctionService.shared
 
@@ -93,7 +95,7 @@ final class MessageFeedViewModel: ObservableObject {
         }
     }
 
-    @Published var showReportConfirmation = false
+    var showReportConfirmation = false
 
     func reportCurrentMessage() async {
         guard let msg = currentMessage else { return }

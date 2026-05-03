@@ -237,7 +237,7 @@ struct ZenLabel: View {
             .font(LumiTheme.label(size))
             .fontWeight(.medium)
             .foregroundStyle(color)
-            .kerning(1.5)
+            .tracking(1.5)
     }
 }
 
@@ -259,7 +259,7 @@ struct MoodPill: View {
             }
             Text(mood.uppercased())
                 .font(LumiTheme.label(10))
-                .kerning(1.2)
+                .tracking(1.2)
         }
         .foregroundStyle(LumiTheme.onSurfaceVariant)
         .padding(.horizontal, 16)
@@ -318,7 +318,7 @@ struct LumiHeader: View {
                     Text(subtitle.uppercased())
                         .font(.custom("PlusJakartaSans-Regular", size: 10))
                         .foregroundStyle(LumiTheme.mutedText.opacity(0.6))
-                        .kerning(1)
+                        .tracking(1)
                 }
             }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 #if os(Android)
 import SkipFirebaseAuth
 #else
@@ -10,20 +11,21 @@ import SkipFirebaseFirestore
 import FirebaseFirestore
 #endif
 
+@Observable
 @MainActor
-final class PairingViewModel: ObservableObject {
-    @Published var myCode: String = ""
-    @Published var isLoadingCode = false
-    @Published var pairs: [PairedUser] = []
-    @Published var incomingRequests: [PairRequest] = []
-    @Published var outgoingRequests: [PairRequest] = []
-    @Published var isLoading = false
-    @Published var error: String?
-    @Published var successMessage: String?
-    @Published var pairingSuccess = false
-    @Published var friendCode: String = ""
-    @Published var inAppRequest: PairRequest?
-    @Published var inAppPairMessage: InAppPairMessage?
+final class PairingViewModel {
+    var myCode: String = ""
+    var isLoadingCode = false
+    var pairs: [PairedUser] = []
+    var incomingRequests: [PairRequest] = []
+    var outgoingRequests: [PairRequest] = []
+    var isLoading = false
+    var error: String?
+    var successMessage: String?
+    var pairingSuccess = false
+    var friendCode: String = ""
+    var inAppRequest: PairRequest?
+    var inAppPairMessage: InAppPairMessage?
 
     private let service = CloudFunctionService.shared
     // `nonisolated(unsafe)` so the nonisolated `deinit` can read these in
@@ -33,7 +35,9 @@ final class PairingViewModel: ObservableObject {
     nonisolated(unsafe) private var incomingListener: ListenerRegistration?
     nonisolated(unsafe) private var outgoingListener: ListenerRegistration?
     nonisolated(unsafe) private var pairMessageListener: ListenerRegistration?
+    #if !os(Android)
     nonisolated(unsafe) private var authStateHandle: AuthStateDidChangeListenerHandle?
+    #endif
     private var seenAcceptedIds = Set<String>()
     private var seenIncomingIds = Set<String>()
     private var hasInitializedListeners = false
@@ -41,7 +45,7 @@ final class PairingViewModel: ObservableObject {
     // Persisted across launches — pair messages user has already seen as a banner
     private static let seenPairMsgKey = "pair_msgs_seen_v1"
     private var seenMessageIds: Set<String> {
-        get { Set(UserDefaults.standard.stringArray(forKey: Self.seenPairMsgKey) ?? []) }
+        get { Set((UserDefaults.standard.array(forKey: Self.seenPairMsgKey) as? [String]) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.seenPairMsgKey) }
     }
     private func markMessageSeen(_ id: String) {
@@ -54,9 +58,11 @@ final class PairingViewModel: ObservableObject {
         incomingListener?.remove()
         outgoingListener?.remove()
         pairMessageListener?.remove()
+        #if !os(Android)
         if let handle = authStateHandle {
             Auth.auth().removeStateDidChangeListener(handle)
         }
+        #endif
     }
 
     // MARK: - Real-time Listeners
@@ -78,12 +84,17 @@ final class PairingViewModel: ObservableObject {
         }
 
         // Otherwise wait for auth state to be ready
+        #if !os(Android)
+        // SkipFirebaseAuth on Android does not (yet) expose
+        // addStateDidChangeListener; the Activity layer drives auth init
+        // explicitly so we skip the listener wait here.
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self, let uid = user?.uid else { return }
             Task { @MainActor [weak self] in
                 self?.attachListeners(uid: uid)
             }
         }
+        #endif
     }
 
     private func attachListeners(uid: String) {

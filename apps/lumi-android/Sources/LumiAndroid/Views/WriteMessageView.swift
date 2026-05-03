@@ -2,8 +2,8 @@ import SwiftUI
 
 struct WriteMessageView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var router: AppRouter
-    @StateObject var viewModel = WriteMessageViewModel()
+    @Environment(AppRouter.self) var router: AppRouter
+    @State var viewModel = WriteMessageViewModel()
     @State var messageText: String = ScreenshotMode.isEnabled ? ScreenshotMode.writeDraft : ""
     @State var selectedMood: String = ScreenshotMode.isEnabled ? ScreenshotMode.shareMood : "Random"
     @State var selectedPair: PairedUser? = nil
@@ -87,7 +87,7 @@ struct WriteMessageView: View {
                 .font(.custom("Plus Jakarta Sans", size: 10))
                 .fontWeight(.medium)
                 .foregroundStyle(LumiTheme.primary)
-                .kerning(1)
+                .tracking(1)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
@@ -113,7 +113,7 @@ struct WriteMessageView: View {
                     .font(.custom("Plus Jakarta Sans", size: 10))
                     .fontWeight(.medium)
                     .foregroundStyle(LumiTheme.primary)
-                    .kerning(1)
+                    .tracking(1)
 
                 Image("icon-chevron-down")
                     .renderingMode(.template)
@@ -201,7 +201,7 @@ struct WriteMessageView: View {
                         ? Color.red.opacity(0.6)
                         : LumiTheme.primary.opacity(0.4)
                 )
-                .kerning(2.4)
+                .tracking(2.4)
         }
     }
 
@@ -231,7 +231,7 @@ struct WriteMessageView: View {
                 Color(red: 0.459, green: 0.427, blue: 0.451)
                     .opacity(canSend ? 1 : 0.5)
             )
-            .kerning(4.2)
+            .tracking(4.2)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
             .background(sendButtonBackground)
@@ -256,8 +256,10 @@ struct WriteMessageView: View {
     }
 }
 
+#if !os(Android)
 struct WriteMessageView_Previews: PreviewProvider {
     static var previews: some View {
         WriteMessageView()
     }
 }
+#endif
