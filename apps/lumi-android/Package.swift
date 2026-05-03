@@ -16,14 +16,25 @@ let package = Package(
         .package(url: "https://github.com/skiptools/skip-motion.git", from: "0.7.2"),
     ],
     targets: [
-        .target(name: "LumiAndroid", dependencies: [
-            .product(name: "SkipFuseUI", package: "skip-fuse-ui"),
-            .product(name: "SkipFirebaseCore", package: "skip-firebase"),
-            .product(name: "SkipFirebaseAuth", package: "skip-firebase"),
-            .product(name: "SkipFirebaseFirestore", package: "skip-firebase"),
-            .product(name: "SkipFirebaseFunctions", package: "skip-firebase"),
-            .product(name: "SkipFirebaseMessaging", package: "skip-firebase"),
-            .product(name: "SkipMotion", package: "skip-motion"),
-        ], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .target(
+            name: "LumiAndroid",
+            dependencies: [
+                .product(name: "SkipFuseUI", package: "skip-fuse-ui"),
+                .product(name: "SkipFirebaseCore", package: "skip-firebase"),
+                .product(name: "SkipFirebaseAuth", package: "skip-firebase"),
+                .product(name: "SkipFirebaseFirestore", package: "skip-firebase"),
+                .product(name: "SkipFirebaseFunctions", package: "skip-firebase"),
+                .product(name: "SkipFirebaseMessaging", package: "skip-firebase"),
+                .product(name: "SkipMotion", package: "skip-motion"),
+            ],
+            resources: [.process("Resources")],
+            // Swift 5 language mode keeps strict-concurrency checking
+            // permissive enough that [String: Any] payloads (used to talk
+            // to Firestore.setData) can cross actor boundaries the way
+            // they do in the iOS Lumi app, which still ships against
+            // Swift 5.9. Without this Skip Fuse rejects those sites.
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            plugins: [.plugin(name: "skipstone", package: "skip")]
+        ),
     ]
 )

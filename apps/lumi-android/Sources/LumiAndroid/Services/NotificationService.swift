@@ -136,28 +136,38 @@ final class NotificationService {
     }
 
     private func writeToken(_ token: String, uid: String) async {
-        let db = Firestore.firestore()
-        do {
-            try await db.collection("users").document(uid).setData([
-                "fcmToken": token,
-                "language": currentLanguageCode,
-                "notificationPrefs": prefsDict,
-            ], merge: true)
-            pendingFCMToken = nil
-        } catch {
-            print("Failed to save FCM token: \(error)")
-        }
+        // Snapshot Sendable values on the MainActor before crossing into the
+        // Firestore async path. `prefsDict` returns [String: Any] which Skip
+        // Fuse's strict-concurrency checker treats as non-Sendable when
+        // sent across actor isolation boundaries.
+        let lang = currentLanguageCode
+        let prefs = prefsDict
+        await Self.persistUserDoc(uid: uid, fcmToken: token, language: lang, prefs: prefs)
+        pendingFCMToken = nil
     }
 
     // MARK: - Sync Preferences
 
     func syncPreferences() async {
         guard let uid = AuthService.shared.uid else { return }
+        let lang = currentLanguageCode
+        let prefs = prefsDict
+        await Self.persistUserDoc(uid: uid, fcmToken: nil, language: lang, prefs: prefs)
+    }
+
+    /// Detached actor-free helper so the [String: Any] payload doesn't
+    /// cross actor isolation. Skip Fuse's strict concurrency check rejects
+    /// the direct `setData(...)` call from a MainActor context otherwise.
+    nonisolated private static func persistUserDoc(
+        uid: String, fcmToken: String?, language: String, prefs: [String: Any]
+    ) async {
         let db = Firestore.firestore()
-        try? await db.collection("users").document(uid).setData([
-            "language": currentLanguageCode,
-            "notificationPrefs": prefsDict,
-        ], merge: true)
+        var payload: [String: Any] = [
+            "language": language,
+            "notificationPrefs": prefs,
+        ]
+        if let fcmToken { payload["fcmToken"] = fcmToken }
+        try? await db.collection("users").document(uid).setData(payload, merge: true)
     }
 
     /// Best-effort BCP-47 language code (e.g., "en", "ja", "zh", "tr")

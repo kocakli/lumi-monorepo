@@ -45,7 +45,7 @@ final class PairingViewModel {
     // Persisted across launches — pair messages user has already seen as a banner
     private static let seenPairMsgKey = "pair_msgs_seen_v1"
     private var seenMessageIds: Set<String> {
-        get { Set((UserDefaults.standard.array(forKey: Self.seenPairMsgKey) as? [String]) ?? []) }
+        get { Set((UserDefaults.standard.object(forKey: Self.seenPairMsgKey) as? [String]) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.seenPairMsgKey) }
     }
     private func markMessageSeen(_ id: String) {

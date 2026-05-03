@@ -80,7 +80,9 @@ private fun LumiWidgetContent(context: Context) {
         Text(
             text = "“$message”",
             style = TextStyle(
-                color = ColorProvider(ink),
+                // Glance ColorProvider takes day + night so the widget keeps
+                // its Lumi cream-on-ink look in both light and dark themes.
+                color = ColorProvider(day = ink, night = ink),
                 fontSize = 14.sp,
                 fontFamily = FontFamily.Serif,
                 textAlign = GlanceTextAlign.Center

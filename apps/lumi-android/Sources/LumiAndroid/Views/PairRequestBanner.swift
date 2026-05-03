@@ -6,6 +6,10 @@ struct PairRequestBanner: View {
     let onDecline: () -> Void
     let onDismiss: () -> Void
 
+    private var codeLabel: String {
+        code.isEmpty ? String.L("pair.banner.someone") : code
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -28,15 +32,15 @@ struct PairRequestBanner: View {
                 }
             }
 
-            Text(code.isEmpty ? String(localized: "pair.banner.someone") : code)
-                .font(.custom("NotoSerif-Regular", size: 22))
-                .foregroundStyle(LumiTheme.primary)
-                .tracking(code.isEmpty ? 0 : 2)
-            + Text(" ")
-                .font(.custom("PlusJakartaSans-Regular", size: 15))
-            + Text("pair.wants_to_pair")
-                .font(.custom("PlusJakartaSans-Regular", size: 15))
-                .foregroundStyle(LumiTheme.onSurfaceVariant)
+            HStack(spacing: 6) {
+                Text(codeLabel)
+                    .font(.custom("NotoSerif-Regular", size: 22))
+                    .foregroundStyle(LumiTheme.primary)
+                    .tracking(code.isEmpty ? 0 : 2)
+                Text("pair.wants_to_pair")
+                    .font(.custom("PlusJakartaSans-Regular", size: 15))
+                    .foregroundStyle(LumiTheme.onSurfaceVariant)
+            }
 
             HStack(spacing: 12) {
                 Button(action: onDecline) {

@@ -302,7 +302,7 @@ struct LumiHeader: View {
             Spacer()
 
             VStack(spacing: 2) {
-                #if !SKIP
+                #if !os(Android)
                 Text("Lumi")
                     .font(.custom("NotoSerif-Regular", size: 36))
                     .foregroundStyle(LumiTheme.onSurface)

@@ -14,7 +14,9 @@ struct PairsListView: View {
         }
         .background(AuroraBackground())
         .offset(x: dragOffset)
+        #if !os(Android)
         .simultaneousGesture(edgeSwipeGesture)
+        #endif
         .task { await viewModel.loadPairs() }
     }
 
@@ -176,6 +178,8 @@ struct PairsListView: View {
 // MARK: - PairCard
 
 struct PairCard: View {
+    static let unnamedLabel = String.L("pairs_list.unnamed")
+
     let pair: PairedUser
     @Bindable var viewModel: PairingViewModel
 
@@ -209,7 +213,7 @@ struct PairCard: View {
 
     private var headerRow: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(pair.nickname ?? String(localized: "pairs_list.unnamed"))
+            Text(pair.nickname ?? Self.unnamedLabel)
                 .font(.custom("NotoSerif-Regular", size: 24))
                 .foregroundStyle(LumiTheme.onSurface)
 

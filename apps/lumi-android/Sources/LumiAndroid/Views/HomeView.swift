@@ -20,7 +20,7 @@ struct HomeView: View {
                     .font(.custom("NotoSerif-Regular", size: 48))
                     .foregroundStyle(LumiTheme.onSurface)
 
-                ZenLabel(text: String(localized: "letters_in_the_wind"), size: 11)
+                ZenLabel(text: String.L("letters_in_the_wind"), size: 11)
 
                 Spacer()
 
@@ -28,7 +28,7 @@ struct HomeView: View {
                 Button {
                     router.navigate(to: .receive)
                 } label: {
-                    Text(String(localized: "receive_a_message"))
+                    Text(String.L("receive_a_message"))
                         .font(LumiTheme.body(16))
                         .fontWeight(.medium)
                         .foregroundStyle(LumiTheme.onSurface)
@@ -43,7 +43,7 @@ struct HomeView: View {
                 Button {
                     router.navigate(to: .write)
                 } label: {
-                    Text(String(localized: "send_a_message"))
+                    Text(String.L("send_a_message"))
                         .font(LumiTheme.body(16))
                         .fontWeight(.medium)
                         .foregroundStyle(LumiTheme.onSurface)

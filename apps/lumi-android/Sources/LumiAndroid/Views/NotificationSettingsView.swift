@@ -6,6 +6,14 @@ struct NotificationSettingsView: View {
 
     private let accentPink = Color(red: 0.925, green: 0.286, blue: 0.600)
 
+    private var frequencyLabel: String {
+        if notificationService.frequency == 0 {
+            return String.L("notif_settings.off")
+        }
+        let suffix = String.L("notif_settings.per_day")
+        return "\(notificationService.frequency)\(suffix)"
+    }
+
     var body: some View {
         // @Bindable shadow — required so the @Observable model exposes
         // $-prefixed Bindings to inner Toggle/TextField etc.
@@ -83,7 +91,7 @@ struct NotificationSettingsView: View {
 
                 Spacer()
 
-                Text(notificationService.frequency == 0 ? String(localized: "notif_settings.off") : "\(notificationService.frequency)\(String(localized: "notif_settings.per_day"))")
+                Text(frequencyLabel)
                     .font(.custom("PlusJakartaSans-Regular", size: 13))
                     .foregroundStyle(LumiTheme.onSurfaceVariant)
             }

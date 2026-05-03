@@ -37,6 +37,7 @@ struct VaultView: View {
             .ignoresSafeArea()
         )
         .offset(x: dragOffset)
+        #if !os(Android)
         .simultaneousGesture(
             DragGesture(minimumDistance: 20)
                 .onChanged { value in
@@ -54,6 +55,7 @@ struct VaultView: View {
                     }
                 }
         )
+        #endif
         .onAppear { viewModel.startListening() }
         .onDisappear { viewModel.stopListening() }
         .sheet(item: $shareItem) { item in

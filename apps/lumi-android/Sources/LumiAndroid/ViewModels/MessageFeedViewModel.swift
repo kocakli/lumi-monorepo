@@ -36,11 +36,8 @@ final class MessageFeedViewModel {
             currentIndex = 0
             // Share messages with widget
             WidgetDataService.saveMessages(feed.map(\.text))
-            #if canImport(WatchConnectivity)
-            // Mirror to paired Apple Watch (WCSession applicationContext, latest-state-wins).
-            // Send full LumiMessage so the Watch can round-trip rate/save by ID.
-            WatchConnectivityService.shared.pushMessages(feed)
-            #endif
+            // (No Apple Watch sync — Lumi Android is Android-only; Watch
+            // mirroring lives in apps/lumi-ios/Lumi.)
             // Mark first message received (notification popup triggers after first swipe)
             if !feed.isEmpty && !UserDefaults.standard.bool(forKey: "hasReceivedFirstMessage") {
                 UserDefaults.standard.set(true, forKey: "hasReceivedFirstMessage")

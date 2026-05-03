@@ -194,7 +194,7 @@ struct WriteMessageView: View {
                     .frame(width: 4, height: 4)
             }
 
-            Text(String(format: String(localized: "write.character_counter"), charactersRemaining))
+            Text(String(format: String.L("write.character_counter"), charactersRemaining))
                 .font(.custom("Plus Jakarta Sans", size: 12))
                 .foregroundStyle(
                     messageText.count > characterLimit
@@ -218,7 +218,7 @@ struct WriteMessageView: View {
             Group {
                 if selectedPair != nil {
                     Text(String(
-                        format: String(localized: "write.button.send_to_pair"),
+                        format: String.L("write.button.send_to_pair"),
                         (selectedPair?.nickname ?? "YOUR PAIR").uppercased()
                     ))
                 } else {

@@ -55,6 +55,7 @@ struct SettingsView: View {
             }
         }
         .offset(x: dragOffset)
+        #if !os(Android)
         .simultaneousGesture(
             DragGesture(minimumDistance: 20)
                 .onChanged { value in
@@ -73,6 +74,7 @@ struct SettingsView: View {
                     }
                 }
         )
+        #endif
     }
 
     // MARK: - Sticky Header
@@ -135,7 +137,7 @@ struct SettingsView: View {
                 .tracking(1)
                 .textCase(.uppercase)
 
-            Text(pairingVM.myCode.isEmpty ? String(localized: "common.loading") : pairingVM.myCode)
+            Text(pairingVM.myCode.isEmpty ? String.L("common.loading") : pairingVM.myCode)
                 .font(.custom("NotoSerif-Regular", size: 30))
                 .foregroundStyle(LumiTheme.secondary)
                 .tracking(3)
@@ -283,7 +285,7 @@ struct SettingsView: View {
                         .foregroundStyle(LumiTheme.primary)
 
                     Text(pairingVM.pairs.isEmpty
-                         ? String(localized: "settings.no_pairs")
+                         ? String.L("settings.no_pairs")
                          : "\(pairingVM.pairs.count) soul\(pairingVM.pairs.count == 1 ? "" : "s") connected")
                         .font(.custom("PlusJakartaSans-Regular", size: 14))
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
@@ -356,7 +358,7 @@ struct SettingsView: View {
 
                 Spacer()
 
-                Text(notificationService.frequency == 0 ? String(localized: "notif_settings.off") : "\(notificationService.frequency)\(String(localized: "notif_settings.per_day"))")
+                Text(notificationService.frequency == 0 ? String.L("notif_settings.off") : "\(notificationService.frequency)\(String.L("notif_settings.per_day"))")
                     .font(.custom("PlusJakartaSans-Regular", size: 12))
                     .foregroundStyle(LumiTheme.mutedText)
 
@@ -588,6 +590,7 @@ struct SettingsView: View {
                 }
 
                 if showDatePicker {
+                    #if !os(Android)
                     DatePicker(
                         "",
                         selection: Binding(
@@ -615,6 +618,15 @@ struct SettingsView: View {
                             )
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+                    #else
+                    // TODO: Skip Android — no DatePicker yet. Replace with a
+                    // simple "Today" tap-to-set fallback so the flow still works.
+                    Button("Set to today") {
+                        sensitiveDays.lastStartDate = Date()
+                        showDatePicker = false
+                    }
+                    .padding()
+                    #endif
                 }
             }
 
@@ -628,7 +640,7 @@ struct SettingsView: View {
 
                     Spacer()
 
-                    Text("\(sensitiveDays.duration) \(String(localized: "sensitive.days_unit"))")
+                    Text("\(sensitiveDays.duration) \(String.L("sensitive.days_unit"))")
                         .font(.custom("PlusJakartaSans-Regular", size: 13))
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
                 }
@@ -658,7 +670,7 @@ struct SettingsView: View {
 
                     Spacer()
 
-                    Text("\(sensitiveDays.cycleLength) \(String(localized: "sensitive.days_unit"))")
+                    Text("\(sensitiveDays.cycleLength) \(String.L("sensitive.days_unit"))")
                         .font(.custom("PlusJakartaSans-Regular", size: 13))
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
                 }
@@ -702,7 +714,7 @@ struct SettingsView: View {
                         .font(.custom("PlusJakartaSans-Regular", size: 12))
                         .foregroundStyle(sensitivePink)
                 } else {
-                    Text("\(String(localized: "sensitive.next_label")) ")
+                    Text("\(String.L("sensitive.next_label")) ")
                         .font(.custom("PlusJakartaSans-Regular", size: 12))
                         .foregroundStyle(LumiTheme.mutedText)
 
