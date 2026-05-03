@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Lumi cream — matches LumiTheme.background (#FAF9F6). Used as the
+         splash window background and as the adaptive-icon background. -->
+    <color name="lumi_cream">#FAF9F6</color>
+</resources>

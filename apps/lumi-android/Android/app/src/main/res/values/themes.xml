@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Pre-Android-12 fallback. Solid cream background, no animated icon
+         (the OS just shows the launcher icon centered until the activity
+         renders). -->
+    <style name="Theme.Lumi.Splash" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/lumi_cream</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+
+</resources>
