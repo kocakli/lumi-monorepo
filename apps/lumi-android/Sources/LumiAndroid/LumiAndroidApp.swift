@@ -30,19 +30,79 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
 
     public var body: some View {
         ZStack {
-            // Active screen — overlays/sheets land on top.
-            switch router.currentScreen {
-            case .home, .write:
-                HomeView()
-            case .receive:
-                // Placeholder until ReceiveMessageView lands.
-                AuroraBackground().overlay(Text("Receive (todo)"))
-            case .settings:
-                AuroraBackground().overlay(Text("Settings (todo)"))
-            case .vault:
-                AuroraBackground().overlay(Text("Vault (todo)"))
-            case .pairs:
-                AuroraBackground().overlay(Text("Pairs (todo)"))
+            // Active screen
+            Group {
+                switch router.currentScreen {
+                case .home, .write:
+                    HomeView()
+                case .receive:
+                    ReceiveMessageView()
+                case .settings:
+                    SettingsView()
+                case .vault:
+                    VaultView()
+                case .pairs:
+                    PairsListView()
+                }
+            }
+
+            // Write modal overlay
+            if router.showWrite {
+                writeMessageOverlay
+            }
+
+            // Message-sent celebration
+            if router.showMessageSent {
+                MessageSentView(onDismiss: {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        router.showMessageSent = false
+                    }
+                    router.goHome()
+                })
+                .transition(.opacity)
+                .zIndex(2)
+            }
+
+            // Notification permission pre-prompt
+            if notificationService.showPrePermission {
+                NotificationPermissionView()
+                    .zIndex(3)
+            }
+
+            // Pair message banner (top)
+            if let pairMsg = pairingVM.inAppPairMessage {
+                VStack {
+                    PairMessageBanner(
+                        message: pairMsg,
+                        onView: {
+                            pairingVM.dismissPairMessage()
+                            router.navigate(to: .receive)
+                        },
+                        onDismiss: { pairingVM.dismissPairMessage() }
+                    )
+                    Spacer()
+                }
+                .zIndex(4)
+            }
+
+            // Pair request banner (top)
+            if let request = pairingVM.inAppRequest {
+                VStack {
+                    PairRequestBanner(
+                        code: request.fromUserCode,
+                        onAccept: { Task { await pairingVM.acceptRequest(request.id) } },
+                        onDecline: { Task { await pairingVM.rejectRequest(request.id) } },
+                        onDismiss: { pairingVM.dismissInAppRequest() }
+                    )
+                    Spacer()
+                }
+                .zIndex(4)
+            }
+
+            // Pairing success animation
+            if pairingVM.pairingSuccess {
+                PairingSuccessAnimation(isPresented: $pairingVM.pairingSuccess)
+                    .zIndex(5)
             }
         }
         .environmentObject(authService)
@@ -55,6 +115,33 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
             notificationService.incrementAppOpenCount()
             pairingVM.startListening()
         }
+    }
+
+    @ViewBuilder
+    var writeMessageOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.35)) {
+                        router.showWrite = false
+                    }
+                }
+
+            WriteMessageView()
+                .environmentObject(authService)
+                .environmentObject(router)
+                .frame(maxHeight: 580)
+                .clipShape(RoundedRectangle(cornerRadius: 48, style: .continuous))
+                .shadow(
+                    color: Color(red: 0.475, green: 0.314, blue: 0.239).opacity(0.12),
+                    radius: 40, x: 0, y: 20
+                )
+                .padding(.horizontal, 24)
+                .padding(.bottom, 100)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: router.showWrite)
     }
 }
 
