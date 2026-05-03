@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "917857620890",
+    "project_id": "lumi-tease",
+    "storage_bucket": "lumi-tease.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:917857620890:android:d775fa95d335448b1c2023",
+        "android_client_info": {
+          "package_name": "com.tease.lumi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzOtfrLUNbKa3jiQWlwh2pkC2F4HjSlcA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
