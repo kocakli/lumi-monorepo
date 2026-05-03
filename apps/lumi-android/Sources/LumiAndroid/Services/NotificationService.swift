@@ -1,5 +1,9 @@
 import SwiftUI
+#if os(Android)
+import SkipFirebaseFirestore
+#else
 import FirebaseFirestore
+#endif
 #if canImport(UserNotifications)
 import UserNotifications
 #endif

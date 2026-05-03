@@ -1,7 +1,11 @@
 import Foundation
 import SkipFuse
 import SwiftUI
+#if os(Android)
+import SkipFirebaseCore
+#else
 import FirebaseCore
+#endif
 
 /// A logger for the LumiAndroid module.
 let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid")

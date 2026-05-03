@@ -1,5 +1,9 @@
 import Foundation
+#if os(Android)
+import SkipFirebaseAuth
+#else
 import FirebaseAuth
+#endif
 
 struct LumiMessage: Identifiable, Codable {
     let id: String

@@ -1,6 +1,14 @@
 import SwiftUI
+#if os(Android)
+import SkipFirebaseAuth
+#else
 import FirebaseAuth
+#endif
+#if os(Android)
+import SkipFirebaseFirestore
+#else
 import FirebaseFirestore
+#endif
 
 @MainActor
 final class PairingViewModel: ObservableObject {

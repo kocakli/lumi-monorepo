@@ -1,3 +1,7 @@
+# ─── Toolchains ───────────────────────────────────────────────────────────
+# swiftly drops a per-repo Swift toolchain pin; user-machine-specific.
+.swift-version
+
 # ─── Node / Backend ───────────────────────────────────────────────────────
 node_modules/
 backend/functions/lib/

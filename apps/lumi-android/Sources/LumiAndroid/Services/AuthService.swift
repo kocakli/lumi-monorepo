@@ -1,6 +1,14 @@
 import SwiftUI
+#if os(Android)
+import SkipFirebaseAuth
+#else
 import FirebaseAuth
+#endif
+#if os(Android)
+import SkipFirebaseFirestore
+#else
 import FirebaseFirestore
+#endif
 
 /// Anonymous Firebase Auth + best-effort `users.{uid}.language` upsert.
 /// Ported verbatim from apps/lumi-ios/Lumi/Services/AuthService.swift —

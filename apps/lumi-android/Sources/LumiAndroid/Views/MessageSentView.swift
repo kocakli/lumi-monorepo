@@ -1,5 +1,7 @@
 import SwiftUI
+#if !os(Android)
 import Lottie
+#endif
 
 struct MessageSentView: View {
     var onDismiss: () -> Void
@@ -39,10 +41,19 @@ struct MessageSentView: View {
                     .blur(radius: 30)
                     .opacity(0.3)
 
-                    // Lottie animation
+                    // Lottie animation (iOS only — Android shows static
+                    // paper-plane glyph; SkipMotion bridge can land later
+                    // if the Lottie loop is missed visually).
+                    #if !os(Android)
                     LottieView(animation: .named("paper-plane"))
                         .playbackMode(.playing(.toProgress(1, loopMode: .loop)))
                         .frame(width: 384, height: 384)
+                    #else
+                    Text("✉")
+                        .font(.system(size: 220))
+                        .foregroundStyle(LumiTheme.peachGlow)
+                        .frame(width: 384, height: 384)
+                    #endif
                 }
                 .rotationEffect(.degrees(-15))
 

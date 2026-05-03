@@ -1,6 +1,14 @@
 import SwiftUI
+#if os(Android)
+import SkipFirebaseFirestore
+#else
 import FirebaseFirestore
+#endif
+#if os(Android)
+import SkipFirebaseAuth
+#else
 import FirebaseAuth
+#endif
 
 @MainActor
 final class VaultViewModel: ObservableObject {
