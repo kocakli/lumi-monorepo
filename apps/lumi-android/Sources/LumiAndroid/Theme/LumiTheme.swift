@@ -274,3 +274,136 @@ struct MoodPill: View {
         )
     }
 }
+
+// MARK: - Global Header (consistent across all pages)
+//
+// Ported from iOS LumiHeader. The italic transformEffect (CGAffineTransform
+// shear that gives the iOS wordmark its custom slant) isn't supported in
+// SkipUI yet — Android falls back to a plain serif Lumi wordmark.
+
+struct LumiHeader: View {
+    var subtitle: String? = nil
+    var leftIcon: String = "icon-settings"
+    var rightIcon: String = "icon-shelves"
+    var onLeftTap: (() -> Void)? = nil
+    var onRightTap: (() -> Void)? = nil
+
+    var body: some View {
+        HStack {
+            Button(action: { onLeftTap?() }) {
+                Image(leftIcon)
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 19, height: 19)
+                    .foregroundStyle(LumiTheme.buttonText)
+            }
+
+            Spacer()
+
+            VStack(spacing: 2) {
+                #if !SKIP
+                Text("Lumi")
+                    .font(.custom("NotoSerif-Regular", size: 36))
+                    .foregroundStyle(LumiTheme.onSurface)
+                    .transformEffect(CGAffineTransform(a: 1, b: 0, c: -0.18, d: 1, tx: 0, ty: 0))
+                #else
+                Text("Lumi")
+                    .font(.custom("NotoSerif-Regular", size: 36))
+                    .italic()
+                    .foregroundStyle(LumiTheme.onSurface)
+                #endif
+
+                if let subtitle {
+                    Text(subtitle.uppercased())
+                        .font(.custom("PlusJakartaSans-Regular", size: 10))
+                        .foregroundStyle(LumiTheme.mutedText.opacity(0.6))
+                        .kerning(1)
+                }
+            }
+
+            Spacer()
+
+            Button(action: { onRightTap?() }) {
+                Image(rightIcon)
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 17, height: 21)
+                    .foregroundStyle(LumiTheme.buttonText)
+            }
+        }
+        .padding(.horizontal, 32)
+        .padding(.top, 24)
+        .padding(.bottom, 16)
+        #if !SKIP
+        .background(
+            Color.white.opacity(0.3)
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .top)
+        )
+        #else
+        .background(
+            Color.white.opacity(0.4)
+                .ignoresSafeArea(edges: .top)
+        )
+        #endif
+    }
+}
+
+// MARK: - Glassmorphic Nav Icon
+
+struct GlassNavIcon: View {
+    let iconName: String
+    var width: CGFloat = 19
+    var height: CGFloat = 19
+
+    var body: some View {
+        Image(iconName)
+            .renderingMode(.template)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: width, height: height)
+            .foregroundStyle(LumiTheme.buttonText)
+            .padding(13)
+            .zenGlass(cornerRadius: LumiTheme.radiusFull, opacity: 0.3)
+    }
+}
+
+// MARK: - Floating Bottom Bar (Send + Receive)
+
+struct FloatingBottomBar: View {
+    var onAddTap: () -> Void = {}
+    var onSparkTap: () -> Void = {}
+    var sparkleActive: Bool = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Button(action: onAddTap) {
+                Image("icon-add")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 51, height: 51)
+            }
+
+            Button(action: onSparkTap) {
+                Image("icon-sparkle-nav")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 52, height: 52)
+                    .scaleEffect(0.9)
+            }
+            .frame(height: 58)
+            .background(
+                sparkleActive
+                    ? Circle().fill(LumiTheme.primaryContainer.opacity(0.7))
+                    : Circle().fill(Color.clear)
+            )
+        }
+        .padding(.leading, 9)
+        .padding(.trailing, 12)
+        .padding(.vertical, 9)
+        .zenGlass(cornerRadius: 48, opacity: 0.3)
+        .shadow(color: LumiTheme.cardShadow, radius: 25, x: 0, y: 20)
+    }
+}
