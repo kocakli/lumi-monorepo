@@ -598,7 +598,7 @@ export const moderateMessageBatch = onSchedule(
               body: t("notif.pair_message_received", targetLocale),
             },
             data: { type: "pair_message", messageId: msg.id },
-            apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message", "mutable-content": 1 } } },
+            apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message" } } },
           });
         }
       } catch (error) {
@@ -1046,7 +1046,7 @@ export const sendPairRequest = onCall(
               body: t("notif.pair_auto_matched", friendLocale),
             },
             data: { type: "pair_accepted" },
-            apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message", "mutable-content": 1 } } },
+            apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message" } } },
           });
         } catch { /* ignore FCM errors */ }
       }
@@ -1105,7 +1105,7 @@ export const sendPairRequest = onCall(
             body: t("notif.pair_request_received", friendLocale, { code: myCode }),
           },
           data: { type: "pair_request", requestId: requestRef.id, fromUserCode: myCode },
-          apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message", "mutable-content": 1 } } },
+          apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message" } } },
         });
       } catch { /* ignore FCM errors */ }
     }
@@ -1205,7 +1205,7 @@ export const respondToPairRequest = onCall(
             body: t("notif.pair_request_accepted", fromLocale),
           },
           data: { type: "pair_accepted", connectionId },
-          apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message", "mutable-content": 1 } } },
+          apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message" } } },
         });
       } catch { /* ignore */ }
     }
@@ -1567,7 +1567,7 @@ export const sendPairMessage = onCall(
             body: t("notif.pair_message_received", targetLocale),
           },
           data: { type: "pair_message", messageId: msgRef.id },
-          apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message", "mutable-content": 1 } } },
+          apns: { payload: { aps: { sound: "lumi-notification.wav", category: "lumi.message" } } },
         });
       } catch { /* ignore FCM errors */ }
     }
@@ -2021,7 +2021,7 @@ export const sendScheduledNotifications = onSchedule(
           },
           apns: {
             payload: {
-              aps: { sound: "lumi-notification.wav", category: "lumi.message", "mutable-content": 1 },
+              aps: { sound: "lumi-notification.wav", category: "lumi.message" },
             },
           },
         });
