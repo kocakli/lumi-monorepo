@@ -74,6 +74,7 @@ struct VaultView: View {
         LumiHeader(
             subtitle: "THE VAULT",
             leftIcon: "icon-close",
+            rightIcon: "icon-settings",
             onLeftTap: { router.goHome() },
             onRightTap: { router.navigate(to: .settings) }
         )

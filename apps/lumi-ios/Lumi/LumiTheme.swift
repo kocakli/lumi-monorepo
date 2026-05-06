@@ -205,6 +205,7 @@ extension View {
 struct LumiHeader: View {
     var subtitle: String? = nil
     var leftIcon: String = "icon-settings"
+    var rightIcon: String = "icon-shelves"
     var onLeftTap: (() -> Void)? = nil
     var onRightTap: (() -> Void)? = nil
 
@@ -238,7 +239,7 @@ struct LumiHeader: View {
             Spacer()
 
             Button(action: { onRightTap?() }) {
-                Image("icon-shelves")
+                Image(rightIcon)
                     .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)

@@ -48,6 +48,14 @@ final class PairingViewModel {
         get { Set((UserDefaults.standard.object(forKey: Self.seenPairMsgKey) as? [String]) ?? []) }
         set { UserDefaults.standard.set(Array(newValue), forKey: Self.seenPairMsgKey) }
     }
+
+    init() {
+        if ScreenshotMode.isEnabled {
+            incomingRequests = ScreenshotMode.incomingRequests
+            pairs = ScreenshotMode.pairs
+        }
+    }
+
     private func markMessageSeen(_ id: String) {
         var s = seenMessageIds
         s.insert(id)
@@ -180,11 +188,21 @@ final class PairingViewModel {
                         if alreadySeen.contains(docId) { continue }
                         // Found new unseen message — show banner once
                         let data = doc.data()
+                        let senderId = data["senderId"] as? String ?? ""
+                        // Sender attribution: prefer the denormalized senderDisplayName
+                        // written by the backend; fall back to looking up the partner
+                        // nickname from the locally-loaded pairs list in case an older
+                        // message predates the backend field.
+                        var senderName = data["senderDisplayName"] as? String ?? ""
+                        if senderName.isEmpty {
+                            senderName = self.pairs.first { $0.partnerUid == senderId }?.nickname ?? ""
+                        }
                         self.inAppPairMessage = InAppPairMessage(
                             id: docId,
                             text: data["text"] as? String ?? "",
                             mood: data["mood"] as? String ?? "Peaceful",
-                            senderId: data["senderId"] as? String ?? ""
+                            senderId: senderId,
+                            senderName: senderName
                         )
                         return
                     }

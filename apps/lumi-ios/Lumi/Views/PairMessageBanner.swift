@@ -7,16 +7,29 @@ struct PairMessageBanner: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            HStack {
+            HStack(spacing: 6) {
                 Image(systemName: "envelope.fill")
                     .font(.system(size: 12))
                     .foregroundStyle(LumiTheme.sparklePink)
+
+                if !message.senderName.isEmpty {
+                    Text(message.senderName)
+                        .font(.custom("PlusJakartaSans-Regular", size: 10))
+                        .fontWeight(.bold)
+                        .foregroundStyle(LumiTheme.sparklePink)
+                        .kerning(message.senderName.hasPrefix("LUMI-") ? 1.5 : 0.5)
+                    Text("·")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.5))
+                }
 
                 Text("pair_message_banner.title")
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .fontWeight(.semibold)
                     .foregroundStyle(LumiTheme.onSurface)
                     .kerning(1.2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
 
                 Spacer()
 

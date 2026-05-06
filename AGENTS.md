@@ -11,13 +11,14 @@ Lumi is a positivity-focused messaging app. Users send and receive anonymous kin
 
 ## Monorepo Structure
 
-- `apps/lumi-ios/` — Native iOS app (SwiftUI, WidgetKit)
+- `apps/lumi-ios/` — Native iOS app (SwiftUI, WidgetKit, watchOS companion)
+- `apps/lumi-android/` — Android port via Skip Fuse (Swift transpiled to Kotlin); shares Firebase + the Localizable.xcstrings format with iOS
 - `backend/functions/` — Firebase Cloud Functions (TypeScript, ESM)
 - `docs/` — PRD, tech stack, project plan
 
 ## Backend (Firebase Cloud Functions)
 
-**Stack**: TypeScript (ESM), Node.js 20, Firebase Admin SDK v13 (modular imports), Gemini AI (`@google/genai`), firebase-functions v7
+**Stack**: TypeScript (ESM), Node.js 22 (engines), Firebase Admin SDK v13 (modular imports), Gemini AI (`@google/genai`), firebase-functions v7. Runtime was bumped from Node 20 → 22 ahead of the 2026-04-30 Node 20 deprecation; if you change `engines.node`, the next deploy will migrate **all** functions to that runtime.
 
 **All backend code lives in a single file**: `backend/functions/src/index.ts` (~2200 lines, no separate modules yet). Helpers live above the exported handlers; section ordering is moderation helpers → callable handlers → scheduled jobs.
 
@@ -162,3 +163,13 @@ Rules are in `firestore.rules`. Key constraints to maintain when modifying funct
 - Reports and support tickets are write-only from clients (no client reads)
 - Default-deny fallback (`match /{document=**}`) ensures no collection is accidentally exposed
 - Composite indexes defined in `firestore.indexes.json` for messages (status+approvedAt, status+mood+approvedAt, senderId+createdAt) and ratings (userId+messageId)
+
+## Android App (Skip Fuse)
+
+`apps/lumi-android/` is a Skip Fuse cross-compile target: Swift sources in `Sources/LumiAndroid/` are transpiled to Kotlin by the `skipstone` SwiftPM plugin and packaged into an Android APK by Gradle. Bundle ID `com.tease.lumi` (shared with iOS); Android package `lumi.android`. The codebase is a parallel adaptation of the iOS app, not shared code — `SkipFuseUI` and `SkipFirebase*` take the place of UIKit/Firebase imports.
+
+**Build**: `cd apps/lumi-android && skip app launch --android` (requires the `skip` CLI). Versions are sourced from `Skip.env` (currently 1.0.0 / build 2). Release signing pulls from `Android/app/keystore.properties`.
+
+**Status**: First successful device boot landed in commit `6e7106ba` (Faz 11). Play Console upload (Faz 12) is the next milestone.
+
+For the full breakdown — directory layout, Skip dependencies, Play Store metadata, screenshot-mode parity, and operational constraints — see the **Android App (Skip Fuse)** section in `CLAUDE.md`. AGENTS.md is intentionally lighter; treat CLAUDE.md as the source of truth for the Android subsystem and keep this section narrow.

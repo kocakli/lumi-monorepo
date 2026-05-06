@@ -1532,10 +1532,22 @@ export const sendPairMessage = onCall(
       return { success: false, message: t("msg.delivery_failed", myLocale) };
     }
 
+    // Resolve a display name for the sender so the recipient can identify
+    // who sent the message. Pair messages are never anonymous: prefer the
+    // recipient's chosen nickname for the sender, fall back to the sender's
+    // public connection code (LUMI-XXXX), which the recipient saw when they
+    // accepted the pair request.
+    const recipientNicknameForSender =
+      (connDoc.data()?.nicknames?.[targetUserId] as string | undefined) ?? "";
+    const senderConnectionCode =
+      (senderDoc.data()?.connectionCode as string | undefined) ?? "";
+    const senderDisplayName = recipientNicknameForSender || senderConnectionCode;
+
     // Approved! Write message directly as approved
     const msgRef = await db.collection("messages").add({
       text,
       senderId: myUid,
+      senderDisplayName,
       targetUserId,
       mood: mood || "Peaceful",
       status: "approved",

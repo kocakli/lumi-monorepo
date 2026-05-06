@@ -32,6 +32,7 @@ struct InAppPairMessage: Identifiable {
     let text: String
     let mood: String
     let senderId: String
+    let senderName: String
 }
 
 struct PairedUser: Identifiable {

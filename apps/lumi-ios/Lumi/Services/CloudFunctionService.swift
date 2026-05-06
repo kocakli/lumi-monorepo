@@ -7,6 +7,10 @@ struct LumiMessage: Identifiable, Codable {
     let mood: String
     var isPairMessage: Bool = false
     var isFromPair: Bool = false
+    // Display name for messages from a paired user. Resolved server-side as
+    // recipient's nickname for the sender, falling back to the sender's
+    // public LUMI-XXXX connection code. Empty for global-feed messages from
+    // strangers.
     var senderName: String = ""
 }
 
@@ -23,6 +27,7 @@ struct InAppPairMessage: Identifiable {
     let text: String
     let mood: String
     let senderId: String
+    let senderName: String
 }
 
 struct PairedUser: Identifiable {

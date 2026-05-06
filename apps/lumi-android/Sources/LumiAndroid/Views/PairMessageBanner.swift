@@ -7,20 +7,33 @@ struct PairMessageBanner: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            HStack {
+            HStack(spacing: 6) {
                 Image(systemName: "envelope.fill")
                     .font(.system(size: 12))
                     .foregroundStyle(LumiTheme.sparklePink)
+
+                if !message.senderName.isEmpty {
+                    Text(message.senderName)
+                        .font(.custom("PlusJakartaSans-Regular", size: 10))
+                        .fontWeight(.bold)
+                        .foregroundStyle(LumiTheme.sparklePink)
+                        .tracking(message.senderName.hasPrefix("LUMI-") ? 1.5 : 0.5)
+                    Text("·")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.5))
+                }
 
                 Text("pair_message_banner.title")
                     .font(.custom("PlusJakartaSans-Regular", size: 10))
                     .fontWeight(.semibold)
                     .foregroundStyle(LumiTheme.onSurface)
                     .tracking(1.2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
 
                 Spacer()
 
-                Button(action: onDismiss) {
+                LumiTapTarget(accessibilityLabel: "Dismiss", action: onDismiss) {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
@@ -48,7 +61,7 @@ struct PairMessageBanner: View {
 
                 Spacer()
 
-                Button(action: onView) {
+                LumiTapTarget(accessibilityLabel: String.L("pair_message_banner.view"), action: onView) {
                     Text("pair_message_banner.view")
                         .font(.custom("PlusJakartaSans-Regular", size: 11))
                         .fontWeight(.semibold)
