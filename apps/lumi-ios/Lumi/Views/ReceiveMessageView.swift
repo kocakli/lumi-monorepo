@@ -167,6 +167,7 @@ struct SwipeCard: View {
 
     @State private var offset: CGSize = .zero
     @State private var isVisible = false
+    @State private var showBlockConfirm = false
 
     private var swipeProgress: CGFloat { offset.width / 150 }
 
@@ -198,19 +199,60 @@ struct SwipeCard: View {
     }
 
     private var cardBody: some View {
-        VStack(spacing: 0) {
-            if message.isPairMessage || message.isFromPair {
-                pairBadge
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                if message.isPairMessage || message.isFromPair {
+                    pairBadge
+                }
+                moodBadge
+                messageBody
+                dividerLine
+                actionRow
             }
-            moodBadge
-            messageBody
-            dividerLine
-            actionRow
+            .padding(40)
+            .background(cardBg)
+            .clipShape(RoundedRectangle(cornerRadius: 48, style: .continuous))
+            .overlay(swipeOverlay)
+
+            ellipsisMenuButton
+                .padding(20)
         }
-        .padding(40)
-        .background(cardBg)
-        .clipShape(RoundedRectangle(cornerRadius: 48, style: .continuous))
-        .overlay(swipeOverlay)
+        .confirmationDialog(
+            Text("receive.menu.title"),
+            isPresented: $showBlockConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                // "Block this sender" routes through the existing report
+                // pipeline (Cloud Function `reportMessage` → `processReports`
+                // re-moderates within 3h → auto-shadowban at 5+ unique
+                // reporters). We also advance the card so the user
+                // never sees this message again.
+                onReport()
+                onSwipeLeft()
+            } label: {
+                Text("receive.menu.block")
+            }
+            Button("common.cancel", role: .cancel) { }
+        }
+    }
+
+    private var ellipsisMenuButton: some View {
+        Button {
+            showBlockConfirm = true
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.6))
+                .frame(width: 36, height: 36)
+                .background(
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .overlay(Circle().fill(Color.white.opacity(0.35)))
+                        .overlay(Circle().stroke(Color.white.opacity(0.5), lineWidth: 1))
+                )
+        }
+        .accessibilityLabel(Text("receive.menu.title"))
     }
 
     private var swipeOverlay: some View {

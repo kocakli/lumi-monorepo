@@ -42,6 +42,7 @@ struct SettingsView: View {
                             yourPairsCard
                             preferencesSection
                             sensitiveDaysCard
+                            contactCard
                             dangerZone
                         }
                         .padding(.horizontal, 24)
@@ -728,6 +729,40 @@ struct SettingsView: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "MMM d"
         return "\(fmt.string(from: start)) – \(fmt.string(from: end))"
+    }
+
+    // MARK: - Contact (Guideline 1.2 visible reporting channel)
+
+    private var contactCard: some View {
+        Link(destination: URL(string: "mailto:oguzhan@tease.tr")!) {
+            HStack(spacing: 12) {
+                Image(systemName: "envelope.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(LumiTheme.primary.opacity(0.6))
+                Text("settings.contact")
+                    .font(.custom("PlusJakartaSans-Regular", size: 14))
+                    .fontWeight(.medium)
+                    .foregroundStyle(LumiTheme.onSurface)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12))
+                    .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.5))
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color.white.opacity(0.3))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                    )
+            )
+        }
     }
 
     // MARK: - Danger Zone

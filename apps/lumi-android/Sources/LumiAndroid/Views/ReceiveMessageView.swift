@@ -32,6 +32,7 @@ struct ReceiveMessageView: View {
                     hasSeenOnboarding = true
                 })
                 .transition(.opacity)
+                .zIndex(20)
             }
 
             // Report confirmation toast
@@ -117,13 +118,15 @@ struct ReceiveMessageView: View {
             Text("receive.empty.subtitle")
                 .font(.custom("PlusJakartaSans-Regular", size: 14))
                 .foregroundStyle(LumiTheme.mutedText)
-            Button("receive.refresh") {
+            LumiTapTarget(accessibilityLabel: String.L("receive.refresh"), action: {
                 Task { await viewModel.loadFeed() }
+            }) {
+                Text("receive.refresh")
+                    .font(.custom("PlusJakartaSans-Regular", size: 14))
+                    .fontWeight(.medium)
+                    .foregroundStyle(LumiTheme.primary)
+                    .padding(.top, 8)
             }
-            .font(.custom("PlusJakartaSans-Regular", size: 14))
-            .fontWeight(.medium)
-            .foregroundStyle(LumiTheme.primary)
-            .padding(.top, 8)
         }
     }
 
@@ -167,6 +170,7 @@ struct SwipeCard: View {
 
     @State var offset: CGSize = .zero
     @State var isVisible = false
+    @State var showBlockConfirm = false
 
     private var swipeProgress: CGFloat { offset.width / 150 }
 
@@ -198,19 +202,59 @@ struct SwipeCard: View {
     }
 
     private var cardBody: some View {
-        VStack(spacing: 0) {
-            if message.isPairMessage || message.isFromPair {
-                pairBadge
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                if message.isPairMessage || message.isFromPair {
+                    pairBadge
+                }
+                moodBadge
+                messageBody
+                dividerLine
+                actionRow
             }
-            moodBadge
-            messageBody
-            dividerLine
-            actionRow
+            .padding(40)
+            .background(cardBg)
+            .clipShape(RoundedRectangle(cornerRadius: 48, style: .continuous))
+            .overlay(swipeOverlay)
+
+            ellipsisMenuButton
+                .padding(20)
         }
-        .padding(40)
-        .background(cardBg)
-        .clipShape(RoundedRectangle(cornerRadius: 48, style: .continuous))
-        .overlay(swipeOverlay)
+        .confirmationDialog(
+            Text("receive.menu.title"),
+            isPresented: $showBlockConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                // "Block this sender" routes through the existing report
+                // pipeline (Cloud Function `reportMessage` → `processReports`
+                // re-moderates within 3h → auto-shadowban at 5+ unique
+                // reporters). We also advance the card so the user
+                // never sees this message again.
+                onReport()
+                onSwipeLeft()
+            } label: {
+                Text("receive.menu.block")
+            }
+            Button("common.cancel", role: .cancel) { }
+        }
+    }
+
+    private var ellipsisMenuButton: some View {
+        LumiTapTarget(accessibilityLabel: String.L("receive.menu.title"), action: {
+            showBlockConfirm = true
+        }) {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.6))
+                .frame(width: 36, height: 36)
+                .background(
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .overlay(Circle().fill(Color.white.opacity(0.35)))
+                        .overlay(Circle().stroke(Color.white.opacity(0.5), lineWidth: 1))
+                )
+        }
     }
 
     private var swipeOverlay: some View {
@@ -330,7 +374,7 @@ struct SwipeCard: View {
 
     private var actionRow: some View {
         HStack(spacing: 40) {
-            Button(action: onSave) {
+            LumiTapTarget(accessibilityLabel: isSaved ? String.L("receive.action.saved") : String.L("receive.action.save"), action: onSave) {
                 VStack(spacing: 12) {
                     Image("icon-save-glass").resizable().aspectRatio(contentMode: .fit)
                         .frame(width: 47, height: 51)
@@ -342,14 +386,14 @@ struct SwipeCard: View {
                         .tracking(0.9)
                 }
             }
-            Button(action: onShare) {
+            LumiTapTarget(accessibilityLabel: String.L("receive.action.share"), action: onShare) {
                 VStack(spacing: 12) {
                     Image("icon-share-glass").resizable().aspectRatio(contentMode: .fit).frame(width: 51, height: 49)
                     Text("receive.action.share").font(.custom("PlusJakartaSans-Regular", size: 9))
                         .foregroundStyle(Color(red: 0.102, green: 0.110, blue: 0.102).opacity(0.4)).tracking(0.9)
                 }
             }
-            Button(action: onReport) {
+            LumiTapTarget(accessibilityLabel: String.L("receive.action.report"), action: onReport) {
                 VStack(spacing: 12) {
                     Image("icon-report-glass").resizable().aspectRatio(contentMode: .fit).frame(width: 48, height: 50)
                     Text("receive.action.report").font(.custom("PlusJakartaSans-Regular", size: 9))
@@ -373,9 +417,11 @@ struct SwipeOnboarding: View {
     var body: some View {
         ZStack {
             // Glass backdrop
-            Color.black.opacity(0.5)
+            Color.black.opacity(backdropOpacity)
                 .ignoresSafeArea()
+                #if !SKIP
                 .background(.ultraThinMaterial)
+                #endif
 
             VStack(spacing: 0) {
                 Spacer()
@@ -460,7 +506,7 @@ struct SwipeOnboarding: View {
 
                 // Button
                 if phase >= 4 {
-                    Button(action: onDismiss) {
+                    LumiTapTarget(accessibilityLabel: String.L("receive.onboarding.begin"), action: onDismiss) {
                         Text("receive.onboarding.begin")
                             .font(.custom("PlusJakartaSans-Regular", size: 13))
                             .fontWeight(.semibold)
@@ -498,6 +544,14 @@ struct SwipeOnboarding: View {
                 arrowOffset = 4
             }
         }
+    }
+
+    private var backdropOpacity: Double {
+        #if os(Android)
+        0.72
+        #else
+        0.5
+        #endif
     }
 }
 

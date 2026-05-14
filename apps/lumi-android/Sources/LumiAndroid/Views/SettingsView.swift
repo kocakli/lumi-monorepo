@@ -42,6 +42,7 @@ struct SettingsView: View {
                             yourPairsCard
                             preferencesSection
                             sensitiveDaysCard
+                            contactCard
                             dangerZone
                         }
                         .padding(.horizontal, 24)
@@ -138,9 +139,12 @@ struct SettingsView: View {
                 .textCase(.uppercase)
 
             Text(pairingVM.myCode.isEmpty ? String.L("common.loading") : pairingVM.myCode)
-                .font(.custom("NotoSerif-Regular", size: 30))
+                .font(.custom("NotoSerif-Regular", size: 28))
                 .foregroundStyle(LumiTheme.secondary)
-                .tracking(3)
+                .tracking(1.4)
+                .lineLimit(1)
+                .minimumScaleFactor(0.62)
+                .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity)
         .padding(25)
@@ -155,11 +159,10 @@ struct SettingsView: View {
     }
 
     private var copyCodeButton: some View {
-        Button(action: {
-            #if canImport(UIKit)
+        LumiTapTarget(accessibilityLabel: String.L("settings.copy_code"), action: {
+            #if canImport(UIKit) || os(Android)
             UIPasteboard.general.string = pairingVM.myCode
             #endif
-            // TODO Android: copy via android.content.ClipboardManager (Faz 7).
         }) {
             Text("settings.copy_code")
                 .font(.custom("PlusJakartaSans-Regular", size: 12))
@@ -267,7 +270,7 @@ struct SettingsView: View {
     // MARK: - Your Pairs Card
 
     private var yourPairsCard: some View {
-        Button(action: { router.navigate(to: .pairs) }) {
+        LumiTapTarget(accessibilityLabel: String.L("settings.your_pairs"), action: { router.navigate(to: .pairs) }) {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
@@ -300,7 +303,6 @@ struct SettingsView: View {
             .padding(24)
             .zenGlass(cornerRadius: 28, opacity: 0.3)
         }
-        .buttonStyle(.plain)
         .task {
             await pairingVM.loadMyCode()
             await pairingVM.loadPairs()
@@ -467,10 +469,12 @@ struct SettingsView: View {
             if sensitiveDays.isEnabled {
                 sensitiveDaysConfig
                     .padding(.top, 28)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(.opacity)
             }
         }
+        #if !os(Android)
         .animation(.easeInOut(duration: 0.35), value: sensitiveDays.isEnabled)
+        #endif
     }
 
     private var sensitiveDaysBadge: some View {
@@ -510,33 +514,15 @@ struct SettingsView: View {
     }
 
     private var sensitiveDaysCustomToggle: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                sensitiveDays.isEnabled.toggle()
-            }
-        }) {
-            ZStack(alignment: sensitiveDays.isEnabled ? .trailing : .leading) {
-                Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.6))
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .stroke(
-                                Color(red: 0.925, green: 0.286, blue: 0.600).opacity(0.5),
-                                lineWidth: 1
-                            )
-                    )
-                    .frame(width: 80, height: 40)
-
-                Circle()
-                    .fill(
-                        sensitiveDays.isEnabled
-                            ? Color(red: 0.925, green: 0.286, blue: 0.600)
-                            : Color(red: 0.800, green: 0.780, blue: 0.770)
-                    )
-                    .frame(width: 32, height: 32)
-                    .padding(4)
-            }
-        }
+        Toggle(
+            "",
+            isOn: Binding(
+                get: { sensitiveDays.isEnabled },
+                set: { sensitiveDays.setEnabled($0) }
+            )
+        )
+        .tint(sensitivePink)
+        .labelsHidden()
     }
 
     // MARK: - Sensitive Days Configuration Panel
@@ -619,13 +605,15 @@ struct SettingsView: View {
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
                     #else
-                    // TODO: Skip Android — no DatePicker yet. Replace with a
-                    // simple "Today" tap-to-set fallback so the flow still works.
-                    Button("Set to today") {
+                    LumiTapTarget(accessibilityLabel: String.L("sensitive.set_today"), action: {
                         sensitiveDays.lastStartDate = Date()
                         showDatePicker = false
+                    }) {
+                        Text(String.L("sensitive.set_today"))
+                            .font(.custom("PlusJakartaSans-Regular", size: 12))
+                            .foregroundStyle(sensitivePink)
+                            .padding()
                     }
-                    .padding()
                     #endif
                 }
             }
@@ -645,15 +633,24 @@ struct SettingsView: View {
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
                 }
 
+                #if os(Android)
+                SensitiveDaysDiscreteSlider(
+                    value: sensitiveDays.duration,
+                    range: SensitiveDaysService.durationRange,
+                    tint: sensitivePink,
+                    onChange: { sensitiveDays.setDuration($0) }
+                )
+                #else
                 Slider(
                     value: Binding(
                         get: { Double(sensitiveDays.duration) },
-                        set: { sensitiveDays.duration = Int($0) }
+                        set: { sensitiveDays.setDuration(Int($0.rounded())) }
                     ),
-                    in: 3...10,
+                    in: Double(SensitiveDaysService.durationRange.lowerBound)...Double(SensitiveDaysService.durationRange.upperBound),
                     step: 1
                 )
                 .tint(sensitivePink)
+                #endif
 
                 Text("sensitive.duration_desc")
                     .font(.custom("PlusJakartaSans-Regular", size: 11))
@@ -675,15 +672,24 @@ struct SettingsView: View {
                         .foregroundStyle(LumiTheme.onSurfaceVariant)
                 }
 
+                #if os(Android)
+                SensitiveDaysDiscreteSlider(
+                    value: sensitiveDays.cycleLength,
+                    range: SensitiveDaysService.cycleLengthRange,
+                    tint: sensitivePink,
+                    onChange: { sensitiveDays.setCycleLength($0) }
+                )
+                #else
                 Slider(
                     value: Binding(
                         get: { Double(sensitiveDays.cycleLength) },
-                        set: { sensitiveDays.cycleLength = Int($0) }
+                        set: { sensitiveDays.setCycleLength(Int($0.rounded())) }
                     ),
-                    in: 21...40,
+                    in: Double(SensitiveDaysService.cycleLengthRange.lowerBound)...Double(SensitiveDaysService.cycleLengthRange.upperBound),
                     step: 1
                 )
                 .tint(sensitivePink)
+                #endif
 
                 Text("sensitive.cycle_desc")
                     .font(.custom("PlusJakartaSans-Regular", size: 11))
@@ -747,11 +753,45 @@ struct SettingsView: View {
         return "\(fmt.string(from: start)) – \(fmt.string(from: end))"
     }
 
+    // MARK: - Contact (Guideline 1.2 / Play UGC: visible reporting channel)
+
+    private var contactCard: some View {
+        Link(destination: URL(string: "mailto:oguzhan@tease.tr")!) {
+            HStack(spacing: 12) {
+                Image(systemName: "envelope.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(LumiTheme.primary.opacity(0.6))
+                Text("settings.contact")
+                    .font(.custom("PlusJakartaSans-Regular", size: 14))
+                    .fontWeight(.medium)
+                    .foregroundStyle(LumiTheme.onSurface)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12))
+                    .foregroundStyle(LumiTheme.onSurfaceVariant.opacity(0.5))
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color.white.opacity(0.3))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                    )
+            )
+        }
+    }
+
     // MARK: - Danger Zone
 
     private var dangerZone: some View {
         VStack(spacing: 24) {
-            Button(action: { showDeactivateConfirm = true }) {
+            LumiTapTarget(isEnabled: !isDeactivating, accessibilityLabel: String.L("settings.deactivate"), action: { showDeactivateConfirm = true }) {
                 HStack(spacing: 8) {
                     if isDeactivating {
                         ProgressView()
@@ -765,7 +805,6 @@ struct SettingsView: View {
                         .foregroundStyle(Color(red: 0.729, green: 0.102, blue: 0.102))
                 }
             }
-            .disabled(isDeactivating)
 
             Text(appVersionString)
                 .font(.custom("PlusJakartaSans-Light", size: 10))
@@ -775,28 +814,28 @@ struct SettingsView: View {
         .padding(.top, 48)
         .padding(.bottom, 96)
         .confirmationDialog(
-            Text(verbatim: "Deactivate your account?"),
+            Text(String.L("settings.deactivate.alert.title")),
             isPresented: $showDeactivateConfirm,
             titleVisibility: .visible
         ) {
             Button(role: .destructive) {
                 Task { await performDeactivation() }
             } label: {
-                Text(verbatim: "Deactivate")
+                Text(String.L("settings.deactivate.alert.confirm"))
             }
             Button("common.cancel", role: .cancel) { }
         } message: {
-            Text(verbatim: "This will permanently erase your vault, pairs, notifications and personal data. Messages you sent to the community stay but are anonymized. This cannot be undone.")
+            Text(String.L("settings.deactivate.alert.message"))
         }
         .alert(
-            Text(verbatim: "Couldn’t deactivate"),
+            Text(String.L("settings.deactivate.error.title")),
             isPresented: Binding(
                 get: { deactivateError != nil },
                 set: { if !$0 { deactivateError = nil } }
             )
         ) {
             Button(role: .cancel) { deactivateError = nil } label: {
-                Text(verbatim: "OK")
+                Text(String.L("common.ok"))
             }
         } message: {
             Text(deactivateError ?? "")
@@ -826,6 +865,100 @@ struct SettingsView: View {
         // session and land the user back on home.
         await authService.resetToFreshAnonymousUser()
         router.goHome()
+    }
+}
+
+struct SensitiveDaysDiscreteSlider: View {
+    let value: Int
+    let range: ClosedRange<Int>
+    let tint: Color
+    let onChange: (Int) -> Void
+
+    private var valueText: String {
+        "\(value)"
+    }
+
+    private var progress: CGFloat {
+        let span = max(range.upperBound - range.lowerBound, 1)
+        let raw = CGFloat(value - range.lowerBound) / CGFloat(span)
+        return min(max(raw, 0), 1)
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            GeometryReader { proxy in
+                let width = max(proxy.size.width, 1)
+                let thumbSize: CGFloat = 30
+                let trackInset = thumbSize / 2
+                let trackWidth = max(width - thumbSize, 1)
+                let thumbX = trackWidth * progress
+
+                ZStack(alignment: .leading) {
+                    Capsule(style: .continuous)
+                        .fill(Color.white.opacity(0.62))
+                        .frame(height: 7)
+                        .padding(.horizontal, trackInset)
+
+                    Capsule(style: .continuous)
+                        .fill(tint.opacity(0.9))
+                        .frame(width: thumbX, height: 7)
+                        .padding(.leading, trackInset)
+
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: thumbSize, height: thumbSize)
+                        .overlay(
+                            Circle()
+                                .stroke(tint.opacity(0.35), lineWidth: 1)
+                        )
+                        .shadow(color: tint.opacity(0.25), radius: 10, x: 0, y: 4)
+                        .offset(x: thumbX)
+                }
+                .frame(height: 44)
+                .background(Color.white.opacity(0.001))
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { gesture in
+                            updateValue(at: gesture.location.x, width: width, thumbSize: thumbSize)
+                        }
+                        .onEnded { gesture in
+                            updateValue(at: gesture.location.x, width: width, thumbSize: thumbSize)
+                        }
+                )
+            }
+            .frame(height: 44)
+
+            HStack {
+                Text("\(range.lowerBound)")
+                Spacer()
+                Text(valueText)
+                    .foregroundStyle(tint)
+                Spacer()
+                Text("\(range.upperBound)")
+            }
+            .font(.custom("PlusJakartaSans-Regular", size: 10))
+            .foregroundStyle(LumiTheme.mutedText.opacity(0.55))
+        }
+        .accessibilityLabel("Sensitive days value")
+        .accessibilityValue("\(value)")
+    }
+
+    private func updateValue(at x: CGFloat, width: CGFloat, thumbSize: CGFloat) {
+        let trackWidth = max(width - thumbSize, 1)
+        let clamped = min(max(x - thumbSize / 2, 0), trackWidth)
+        let ratio = clamped / trackWidth
+        let span = range.upperBound - range.lowerBound
+        let next = range.lowerBound + Int((ratio * CGFloat(span)).rounded())
+        updateValue(next)
+    }
+
+    private func updateValue(_ next: Int) {
+        let clamped = min(max(next, range.lowerBound), range.upperBound)
+        if clamped != value {
+            withAnimation(.easeInOut(duration: 0.16)) {
+                onChange(clamped)
+            }
+        }
     }
 }
 
@@ -865,7 +998,7 @@ struct SupportView: View {
                         )
                         .shadow(color: LumiTheme.cardShadow, radius: 10, x: 0, y: 4)
 
-                    Button(action: { hasAttachedImage.toggle() }) {
+                    LumiTapTarget(accessibilityLabel: String.L("support.attach"), action: { hasAttachedImage.toggle() }) {
                         HStack(spacing: 12) {
                             Image(systemName: hasAttachedImage ? "checkmark.circle.fill" : "photo")
                                 .foregroundStyle(
@@ -889,7 +1022,7 @@ struct SupportView: View {
 
                     Spacer()
 
-                    Button(action: { dismiss() }) {
+                    LumiTapTarget(accessibilityLabel: String.L("support.send"), action: { dismiss() }) {
                         Text("support.send")
                             .font(.custom("PlusJakartaSans-Regular", size: 13))
                             .fontWeight(.medium)
@@ -909,7 +1042,7 @@ struct SupportView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: { dismiss() }) {
+                    LumiTapTarget(accessibilityLabel: "Close", action: { dismiss() }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 16, weight: .light))
                             .foregroundStyle(LumiTheme.primary)

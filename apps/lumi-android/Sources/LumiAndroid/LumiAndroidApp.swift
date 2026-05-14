@@ -22,6 +22,7 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
     @State var sensitiveDays = SensitiveDaysService.shared
     @State var notificationService = NotificationService.shared
     @State var pairingVM = PairingViewModel()
+    @AppStorage("hasAcceptedTerms_v1") var hasAcceptedTerms: Bool = false
 
     /* SKIP @bridge */public init() {
         // Configure Firebase before any @StateObject lazy-init touches Firebase
@@ -36,19 +37,26 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
         ZStack {
             // Active screen
             Group {
-                switch router.currentScreen {
-                case .home, .write:
-                    HomeView()
-                case .receive:
-                    ReceiveMessageView()
-                case .settings:
-                    SettingsView()
-                case .vault:
-                    VaultView()
-                case .pairs:
-                    PairsListView()
+                if ScreenshotMode.isEnabled {
+                    screenshotScreen
+                } else {
+                    switch router.currentScreen {
+                    case .home, .write:
+                        HomeView()
+                    case .receive:
+                        ReceiveMessageView()
+                    case .settings:
+                        SettingsView()
+                    case .vault:
+                        VaultView()
+                    case .pairs:
+                        PairsListView()
+                    }
                 }
             }
+            .id(router.currentScreen)
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.22), value: router.currentScreen)
 
             // Write modal overlay
             if router.showWrite {
@@ -68,7 +76,8 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
             }
 
             // Notification permission pre-prompt
-            if notificationService.showPrePermission {
+            if notificationService.showPrePermission
+                || (ScreenshotMode.isEnabled && ScreenshotMode.screen == "notification") {
                 NotificationPermissionView()
                     .zIndex(3)
             }
@@ -108,16 +117,62 @@ let logger: Logger = Logger(subsystem: "com.tease.lumi", category: "LumiAndroid"
                 PairingSuccessAnimation(isPresented: $pairingVM.pairingSuccess)
                     .zIndex(5)
             }
+
+            // Guideline 1.2 / Play Store UGC: require explicit terms
+            // acceptance on first launch before any UGC surface is reachable.
+            if !hasAcceptedTerms && !ScreenshotMode.isEnabled {
+                TermsAcceptanceView(onAccept: {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        hasAcceptedTerms = true
+                    }
+                })
+                .transition(.opacity)
+                .zIndex(100)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .lumiPlainButtonStyle()
         .environment(authService)
         .environment(router)
         .environment(sensitiveDays)
         .environment(notificationService)
         .environment(pairingVM)
         .task {
+            if ScreenshotMode.isEnabled {
+                ScreenshotMode.configure(router: router)
+                pairingVM.startListening()
+                return
+            }
             logger.info("Lumi Android boot — uid=\(authService.uid ?? "?")")
             notificationService.incrementAppOpenCount()
             pairingVM.startListening()
+        }
+    }
+
+    @ViewBuilder
+    private var screenshotScreen: some View {
+        switch ScreenshotMode.screen {
+        case "receive":
+            ReceiveMessageView()
+        case "write":
+            ZStack {
+                HomeView()
+                writeMessageOverlay
+            }
+        case "vault":
+            VaultView()
+        case "settings":
+            SettingsView()
+        case "connection":
+            ConnectionCodeView()
+        case "pairs":
+            PairsListView()
+        case "share":
+            ShareMessageView(message: ScreenshotMode.shareMessage, mood: ScreenshotMode.shareMood)
+        case "notification", "notification-settings":
+            NotificationSettingsView()
+        default:
+            HomeView()
         }
     }
 

@@ -13,6 +13,7 @@ struct LumiApp: App {
     @StateObject private var notificationService = NotificationService.shared
     @StateObject private var pairingVM = PairingViewModel()
     @State private var showSplash = !ScreenshotMode.isEnabled
+    @AppStorage("hasAcceptedTerms_v1") private var hasAcceptedTerms: Bool = false
 
     init() {
         // Defensive: ensure Firebase is configured before any @StateObject lazy-inits
@@ -134,6 +135,19 @@ struct LumiApp: App {
 
                 if showSplash {
                     SplashScreen(isVisible: $showSplash)
+                }
+
+                // Guideline 1.2: require explicit terms acceptance on first
+                // launch before any UGC surface (feed, write, pairs) is
+                // reachable. Sits above everything except the splash video.
+                if !showSplash && !hasAcceptedTerms && !ScreenshotMode.isEnabled {
+                    TermsAcceptanceView(onAccept: {
+                        withAnimation(.easeInOut(duration: 0.35)) {
+                            hasAcceptedTerms = true
+                        }
+                    })
+                    .transition(.opacity)
+                    .zIndex(100)
                 }
             }
         }
